@@ -35,9 +35,22 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete (pushed and verified on origin/main).
 
+### Phase 3 — Security Audit & Hardening (2026-08-26)
+
+- Created `docs/security/` baseline suite:
+  - SECURITY_BASELINE, ATTACK_SURFACE, THREAT_MODEL, FUZZING, SECURITY_TESTING, SECURITY_AUDIT, README
+- Mapped untrusted-input boundaries against architecture data flow
+- Reviewed upstream fuzz harnesses (`tools/target_*_fuzzer.c`) and OSS-Fuzz relationship
+- Extended CI `linux-asan` with bounded malformed-input smokes (empty, random64, invalid image name) under `timeout`
+- Extended `docs-check` to require security documentation files
+- **No confirmed vulnerability in MediaForge-owned code** (no functional FFmpeg patches yet); no speculative upstream patches
+- Findings logged: MF-SEC-2026-001 (CI malformed coverage), MF-SEC-2026-002 (security docs) — both addressed
+
+**Status**: Complete (documentation + CI process hardening).
+
 ## Current Phase
 
-Phase 2 complete and on remote. Next: Phase 3 — Security Audit (per ROADMAP).
+Phase 3 complete. Next: Phase 4 — Performance Engineering (per ROADMAP), or continue security loop as patches appear.
 
 ## Architecture Decisions
 
@@ -49,7 +62,9 @@ See `docs/architecture/decisions/`. Summary:
 
 ## Important Modifications
 
-- Documentation only under `docs/architecture/` and journal/roadmap/README updates.
+- Documentation under `docs/architecture/` (Phase 2) and `docs/security/` (Phase 3).
+- CI: ASan malformed-input smoke steps; docs-check includes security files.
+- No functional FFmpeg source patches.
 
 ## Known Issues / Unresolved Questions
 
@@ -70,4 +85,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated after Phase 2 push verification on origin/main (50151a0).*
+*Updated at end of Phase 3.*

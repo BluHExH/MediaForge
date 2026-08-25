@@ -243,7 +243,31 @@ jobs:
         run: |
           ./ffmpeg -version
           ./ffmpeg -f lavfi -i "color=c=red:s=32x32:d=0.1" -f null - 2>&1 | tail -8
-          echo "ASan/UBSan smoke test completed without reported errors."
+          echo "ASan/UBSan happy-path smoke completed without reported errors."
+
+      - name: Malformed-input smoke under sanitizers
+        working-directory: ffmpeg
+        env:
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1
+        run: |
+          # Bounded, non-weaponized fixtures only. Non-zero exit is expected.
+          set +e
+          : > /tmp/mf_empty.bin
+          timeout 10s ./ffmpeg -v error -i /tmp/mf_empty.bin -f null - >/tmp/mf_out1.txt 2>&1
+          echo "empty_file exit=$?"
+
+          dd if=/dev/urandom of=/tmp/mf_rnd.bin bs=64 count=1 status=none
+          timeout 10s ./ffmpeg -v error -i /tmp/mf_rnd.bin -f null - >/tmp/mf_out2.txt 2>&1
+          echo "random64 exit=$?"
+
+          printf 'not-a-real-image' > /tmp/mf_bad.png
+          timeout 10s ./ffmpeg -v error -i /tmp/mf_bad.png -f null - >/tmp/mf_out3.txt 2>&1
+          echo "bad_png_name exit=$?"
+
+          set -e
+          # If ASan/UBSan had aborted, the job would already have failed.
+          echo "Malformed-input smoke completed without sanitizer abort."
 
   windows:
     name: Windows (MSYS2 MinGW)
@@ -364,4 +388,12 @@ jobs:
           test -f docs/DEVELOPMENT.md
           test -f docs/ROADMAP.md
           test -f docs/build/BUILDING.md
+          test -f docs/architecture/README.md
+          test -d docs/security
+          test -f docs/security/SECURITY_BASELINE.md
+          test -f docs/security/ATTACK_SURFACE.md
+          test -f docs/security/THREAT_MODEL.md
+          test -f docs/security/FUZZING.md
+          test -f docs/security/SECURITY_TESTING.md
+          test -f docs/security/SECURITY_AUDIT.md
           echo "Required documentation files present."

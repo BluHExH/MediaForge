@@ -9,7 +9,7 @@ MediaForge aims to progressively improve correctness, security, performance, mai
 
 ## Status
 
-**Phases 0–2 complete** (Discovery, Build/CI, Architecture Documentation).
+**Phases 0–3 complete** (Discovery, Build/CI, Architecture Documentation, Security Audit baseline).
 
 See:
 
@@ -18,6 +18,7 @@ See:
 - [docs/ROADMAP.md](docs/ROADMAP.md) — long-term roadmap
 - [docs/build/BUILDING.md](docs/build/BUILDING.md) — developer build guide and CI description
 - [docs/architecture/](docs/architecture/) — architecture map and extension points
+- [docs/security/](docs/security/) — security baseline, threat model, audit log
 
 CI (GitHub Actions) builds upstream FFmpeg on Linux (GCC/Clang + ASan), Windows (MSYS2), and macOS with smoke tests. No functional MediaForge source patches yet.
 
