@@ -16,7 +16,7 @@ This roadmap is living and will be updated as phases complete and new opportunit
 | Phase | Title | Status | Notes |
 |-------|-------|--------|-------|
 | 0 | Repository Discovery | **Complete** | Baseline report, structure, licensing, name assessment |
-| 1 | Build and CI Foundation | Planned | Reproducible builds, GitHub Actions (Linux/Windows/macOS), sanitizers, warning hygiene |
+| 1 | Build and CI Foundation | **Complete** | Reproducible builds, GitHub Actions (Linux/Windows/macOS), sanitizers, warning hygiene |
 | 2 | Architecture Documentation | Planned | Deep docs under `docs/architecture/` covering demux/decode/encode/mux/filter/hwaccel relationships |
 | 3 | Security Audit | Planned | Memory safety, integer issues, parser robustness, sanitizer + fuzzing integration |
 | 4 | Performance Engineering | Planned | Establish `docs/BENCHMARKS.md`, profile, optimize only after measurement |
@@ -28,12 +28,12 @@ This roadmap is living and will be updated as phases complete and new opportunit
 | 10 | Compatibility and Release Engineering | Planned | Release gates, artifacts, notes, matrix |
 | ∞ | Continuous Engineering Loop | Ongoing after 10 | AUDIT → PLAN → IMPLEMENT → TEST → BENCHMARK → SECURITY → DOCUMENT → COMMIT → PUSH |
 
-## Near-Term Priorities (after Phase 0)
+## Near-Term Priorities (after Phase 1)
 
-1. Obtain a usable full source tree (CI runners or improved workspace).
-2. Establish clean baseline builds and automated CI.
-3. Document architecture without changing behavior.
-4. Begin defensive security review of high-risk parsers.
+1. Document internal architecture (Phase 2) without changing behavior.
+2. Strengthen CI (pin FFmpeg commit, expand FATE smoke coverage carefully).
+3. Begin defensive security review of high-risk parsers (Phase 3).
+4. When environment permits, introduce a MediaForge source tree or submodule.
 
 ## Out of Scope (initially)
 
@@ -51,4 +51,4 @@ This roadmap is living and will be updated as phases complete and new opportunit
 
 ---
 
-*Last updated: Phase 0 completion, 2026-08-25*
+*Last updated: Phase 1 completion, 2026-08-25*
