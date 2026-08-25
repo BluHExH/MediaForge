@@ -1,0 +1,394 @@
+# MediaForge CI — Build & CI Foundation (Phase 1)
+#
+# Goal: establish reliable, reproducible multi-platform builds of the
+# upstream FFmpeg codebase that MediaForge is based on.
+#
+# This workflow does NOT yet apply MediaForge-specific source patches
+# (none exist). It validates that the project can configure, compile,
+# and produce working binaries on supported platforms.
+#
+# Full FATE regression is intentionally limited / deferred: the fate-suite
+# is large and time-consuming. We run smoke tests and a small subset of
+# build-time checks. Expand FATE coverage in Phase 8.
+#
+# Resource note: GitHub-hosted runners are used because the development
+# workspace has severe RAM constraints (~1.2 GiB).
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Pin upstream FFmpeg for reproducible CI. Update deliberately.
+  # Using a recent master tip is acceptable for Phase 1 foundation;
+  # later phases should pin a release tag or specific commit SHA.
+  FFMPEG_REF: master
+  FFMPEG_REPO: https://github.com/FFmpeg/FFmpeg.git
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Linux — minimal (fast feedback for core breakage)
+  # --------------------------------------------------------------------------
+  linux-minimal:
+    name: Linux minimal (GCC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential yasm nasm pkg-config
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
+          echo "Building FFmpeg commit: $(git -C ffmpeg rev-parse --short HEAD)"
+
+      - name: Configure (minimal)
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --disable-everything \
+            --disable-network \
+            --disable-autodetect \
+            --enable-protocol=file \
+            --enable-demuxer=rawvideo,image2 \
+            --enable-muxer=rawvideo,null,image2 \
+            --enable-decoder=rawvideo \
+            --enable-encoder=rawvideo \
+            --enable-filter=null,scale,anull \
+            --enable-parser= \
+            --enable-bsf= \
+            --enable-ffmpeg \
+            --enable-ffprobe \
+            --disable-doc \
+            --disable-htmlpages \
+            --disable-manpages \
+            --disable-podpages \
+            --disable-txtpages \
+            || { cat ffbuild/config.log; exit 1; }
+          echo "=== configure summary ==="
+          ./ffmpeg -hide_banner -buildconf 2>/dev/null || true
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: Smoke test
+        working-directory: ffmpeg
+        run: |
+          ./ffmpeg -version
+          ./ffprobe -version
+          # Generate a tiny raw frame and round-trip through null muxer
+          ./ffmpeg -f lavfi -i "color=c=black:s=16x16:d=0.04" -f null - 2>&1 | tail -5
+
+      - name: Record environment
+        run: |
+          echo "OS: $(uname -a)"
+          echo "GCC: $(gcc --version | head -1)"
+          echo "FFmpeg commit: $FFMPEG_COMMIT"
+          echo "Configure flags: minimal (disable-everything + core rawvideo path)"
+
+  # --------------------------------------------------------------------------
+  # Linux — standard (GPL, no heavy external libs)
+  # --------------------------------------------------------------------------
+  linux-standard:
+    name: Linux standard (GCC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential yasm nasm pkg-config
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Configure (standard)
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --enable-gpl \
+            --disable-debug \
+            --disable-doc \
+            --disable-htmlpages \
+            --disable-manpages \
+            --disable-podpages \
+            --disable-txtpages \
+            --extra-cflags="-O2" \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: Smoke test
+        working-directory: ffmpeg
+        run: |
+          ./ffmpeg -version
+          ./ffprobe -version
+          ./ffmpeg -hide_banner -encoders 2>&1 | head -20
+          ./ffmpeg -f lavfi -i "testsrc=duration=0.1:size=64x64:rate=10" -f null - 2>&1 | tail -8
+
+      - name: Record environment
+        run: |
+          echo "OS: $(uname -a)"
+          echo "GCC: $(gcc --version | head -1)"
+          echo "FFmpeg commit: $FFMPEG_COMMIT"
+
+  # --------------------------------------------------------------------------
+  # Linux — Clang
+  # --------------------------------------------------------------------------
+  linux-clang:
+    name: Linux standard (Clang)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang yasm nasm pkg-config
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Configure (Clang)
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --cc=clang \
+            --cxx=clang++ \
+            --enable-gpl \
+            --disable-debug \
+            --disable-doc \
+            --disable-htmlpages \
+            --disable-manpages \
+            --disable-podpages \
+            --disable-txtpages \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: Smoke test
+        working-directory: ffmpeg
+        run: |
+          ./ffmpeg -version
+          ./ffprobe -version
+          ./ffmpeg -f lavfi -i "testsrc=duration=0.1:size=64x64:rate=10" -f null - 2>&1 | tail -5
+
+  # --------------------------------------------------------------------------
+  # Linux — AddressSanitizer + UndefinedBehaviorSanitizer (limited config)
+  # --------------------------------------------------------------------------
+  linux-asan:
+    name: Linux ASan+UBSan (minimal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential yasm nasm pkg-config
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+
+      - name: Configure (ASan + UBSan)
+        working-directory: ffmpeg
+        run: |
+          # Limited feature set keeps sanitizer builds tractable and
+          # focuses on core memory/UB issues in the common path.
+          ./configure \
+            --disable-everything \
+            --disable-network \
+            --disable-autodetect \
+            --enable-protocol=file \
+            --enable-demuxer=rawvideo,image2 \
+            --enable-muxer=rawvideo,null,image2 \
+            --enable-decoder=rawvideo \
+            --enable-encoder=rawvideo \
+            --enable-filter=null,scale,anull \
+            --enable-ffmpeg \
+            --enable-ffprobe \
+            --disable-doc \
+            --extra-cflags="-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer" \
+            --extra-ldflags="-fsanitize=address,undefined" \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: Smoke test under sanitizers
+        working-directory: ffmpeg
+        env:
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1
+        run: |
+          ./ffmpeg -version
+          ./ffmpeg -f lavfi -i "color=c=red:s=32x32:d=0.1" -f null - 2>&1 | tail -8
+          echo "ASan/UBSan smoke test completed without reported errors."
+
+  # --------------------------------------------------------------------------
+  # Windows (MSYS2 / MinGW)
+  # --------------------------------------------------------------------------
+  windows:
+    name: Windows (MSYS2 MinGW)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            git
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-nasm
+            mingw-w64-x86_64-pkg-config
+            make
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Configure (minimal)
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --disable-everything \
+            --disable-network \
+            --disable-autodetect \
+            --enable-protocol=file \
+            --enable-demuxer=rawvideo,image2 \
+            --enable-muxer=rawvideo,null,image2 \
+            --enable-decoder=rawvideo \
+            --enable-encoder=rawvideo \
+            --enable-filter=null,scale,anull \
+            --enable-ffmpeg \
+            --enable-ffprobe \
+            --disable-doc \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: Smoke test
+        working-directory: ffmpeg
+        run: |
+          ./ffmpeg.exe -version
+          ./ffprobe.exe -version
+          ./ffmpeg.exe -f lavfi -i "color=c=blue:s=16x16:d=0.04" -f null - 2>&1 | tail -5
+
+  # --------------------------------------------------------------------------
+  # macOS (Apple Clang)
+  # --------------------------------------------------------------------------
+  macos:
+    name: macOS (Clang)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          # nasm is useful for x86; on Apple Silicon it is still helpful for some paths
+          brew install nasm pkg-config || true
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Configure (minimal)
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --disable-everything \
+            --disable-network \
+            --disable-autodetect \
+            --enable-protocol=file \
+            --enable-demuxer=rawvideo,image2 \
+            --enable-muxer=rawvideo,null,image2 \
+            --enable-decoder=rawvideo \
+            --enable-encoder=rawvideo \
+            --enable-filter=null,scale,anull \
+            --enable-ffmpeg \
+            --enable-ffprobe \
+            --disable-doc \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(sysctl -n hw.ncpu)"
+
+      - name: Smoke test
+        working-directory: ffmpeg
+        run: |
+          ./ffmpeg -version
+          ./ffprobe -version
+          ./ffmpeg -f lavfi -i "color=c=green:s=16x16:d=0.04" -f null - 2>&1 | tail -5
+
+  # --------------------------------------------------------------------------
+  # Documentation / structure check (fast)
+  # --------------------------------------------------------------------------
+  docs-check:
+    name: Docs & structure
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Verify required files
+        run: |
+          test -f README.md
+          test -f docs/BASELINE.md
+          test -f docs/DEVELOPMENT.md
+          test -f docs/ROADMAP.md
+          test -f docs/build/BUILDING.md
+          echo "Required documentation files present."
