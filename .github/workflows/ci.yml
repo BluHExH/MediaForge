@@ -35,9 +35,6 @@ env:
   FFMPEG_REPO: https://github.com/FFmpeg/FFmpeg.git
 
 jobs:
-  # --------------------------------------------------------------------------
-  # Linux — minimal (fast feedback for core breakage)
-  # --------------------------------------------------------------------------
   linux-minimal:
     name: Linux minimal (GCC)
     runs-on: ubuntu-latest
@@ -71,8 +68,6 @@ jobs:
             --enable-decoder=rawvideo \
             --enable-encoder=rawvideo \
             --enable-filter=null,scale,anull \
-            --enable-parser= \
-            --enable-bsf= \
             --enable-ffmpeg \
             --enable-ffprobe \
             --disable-doc \
@@ -93,7 +88,6 @@ jobs:
         run: |
           ./ffmpeg -version
           ./ffprobe -version
-          # Generate a tiny raw frame and round-trip through null muxer
           ./ffmpeg -f lavfi -i "color=c=black:s=16x16:d=0.04" -f null - 2>&1 | tail -5
 
       - name: Record environment
@@ -103,9 +97,6 @@ jobs:
           echo "FFmpeg commit: $FFMPEG_COMMIT"
           echo "Configure flags: minimal (disable-everything + core rawvideo path)"
 
-  # --------------------------------------------------------------------------
-  # Linux — standard (GPL, no heavy external libs)
-  # --------------------------------------------------------------------------
   linux-standard:
     name: Linux standard (GCC)
     runs-on: ubuntu-latest
@@ -157,9 +148,6 @@ jobs:
           echo "GCC: $(gcc --version | head -1)"
           echo "FFmpeg commit: $FFMPEG_COMMIT"
 
-  # --------------------------------------------------------------------------
-  # Linux — Clang
-  # --------------------------------------------------------------------------
   linux-clang:
     name: Linux standard (Clang)
     runs-on: ubuntu-latest
@@ -205,9 +193,6 @@ jobs:
           ./ffprobe -version
           ./ffmpeg -f lavfi -i "testsrc=duration=0.1:size=64x64:rate=10" -f null - 2>&1 | tail -5
 
-  # --------------------------------------------------------------------------
-  # Linux — AddressSanitizer + UndefinedBehaviorSanitizer (limited config)
-  # --------------------------------------------------------------------------
   linux-asan:
     name: Linux ASan+UBSan (minimal)
     runs-on: ubuntu-latest
@@ -229,8 +214,6 @@ jobs:
       - name: Configure (ASan + UBSan)
         working-directory: ffmpeg
         run: |
-          # Limited feature set keeps sanitizer builds tractable and
-          # focuses on core memory/UB issues in the common path.
           ./configure \
             --disable-everything \
             --disable-network \
@@ -262,9 +245,6 @@ jobs:
           ./ffmpeg -f lavfi -i "color=c=red:s=32x32:d=0.1" -f null - 2>&1 | tail -8
           echo "ASan/UBSan smoke test completed without reported errors."
 
-  # --------------------------------------------------------------------------
-  # Windows (MSYS2 / MinGW)
-  # --------------------------------------------------------------------------
   windows:
     name: Windows (MSYS2 MinGW)
     runs-on: windows-latest
@@ -323,9 +303,6 @@ jobs:
           ./ffprobe.exe -version
           ./ffmpeg.exe -f lavfi -i "color=c=blue:s=16x16:d=0.04" -f null - 2>&1 | tail -5
 
-  # --------------------------------------------------------------------------
-  # macOS (Apple Clang)
-  # --------------------------------------------------------------------------
   macos:
     name: macOS (Clang)
     runs-on: macos-latest
@@ -336,7 +313,6 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          # nasm is useful for x86; on Apple Silicon it is still helpful for some paths
           brew install nasm pkg-config || true
 
       - name: Clone upstream FFmpeg
@@ -373,9 +349,6 @@ jobs:
           ./ffprobe -version
           ./ffmpeg -f lavfi -i "color=c=green:s=16x16:d=0.04" -f null - 2>&1 | tail -5
 
-  # --------------------------------------------------------------------------
-  # Documentation / structure check (fast)
-  # --------------------------------------------------------------------------
   docs-check:
     name: Docs & structure
     runs-on: ubuntu-latest
