@@ -17,7 +17,7 @@ This roadmap is living and will be updated as phases complete and new opportunit
 |-------|-------|--------|-------|
 | 0 | Repository Discovery | **Complete** | Baseline report, structure, licensing, name assessment |
 | 1 | Build and CI Foundation | **Complete** | Reproducible builds, GitHub Actions (Linux/Windows/macOS), sanitizers, warning hygiene |
-| 2 | Architecture Documentation | Planned | Deep docs under `docs/architecture/` covering demux/decode/encode/mux/filter/hwaccel relationships |
+| 2 | Architecture Documentation | **Complete** | Deep docs under `docs/architecture/` covering demux/decode/encode/mux/filter/hwaccel relationships |
 | 3 | Security Audit | Planned | Memory safety, integer issues, parser robustness, sanitizer + fuzzing integration |
 | 4 | Performance Engineering | Planned | Establish `docs/BENCHMARKS.md`, profile, optimize only after measurement |
 | 5 | Modern CLI / Developer Experience | Planned | Diagnostics, progress, machine-readable output, safer defaults (compat-preserving) |
@@ -28,12 +28,12 @@ This roadmap is living and will be updated as phases complete and new opportunit
 | 10 | Compatibility and Release Engineering | Planned | Release gates, artifacts, notes, matrix |
 | ∞ | Continuous Engineering Loop | Ongoing after 10 | AUDIT → PLAN → IMPLEMENT → TEST → BENCHMARK → SECURITY → DOCUMENT → COMMIT → PUSH |
 
-## Near-Term Priorities (after Phase 1)
+## Near-Term Priorities (after Phase 2)
 
-1. Document internal architecture (Phase 2) without changing behavior.
+1. Begin defensive security review of high-risk parsers (Phase 3).
 2. Strengthen CI (pin FFmpeg commit, expand FATE smoke coverage carefully).
-3. Begin defensive security review of high-risk parsers (Phase 3).
-4. When environment permits, introduce a MediaForge source tree or submodule.
+3. When environment permits, introduce a MediaForge source tree or submodule.
+4. Use architecture docs and extension-point map to guide all subsequent changes.
 
 ## Out of Scope (initially)
 
@@ -51,4 +51,4 @@ This roadmap is living and will be updated as phases complete and new opportunit
 
 ---
 
-*Last updated: Phase 1 completion, 2026-08-25*
+*Last updated: Phase 2 completion, 2026-08-25*
