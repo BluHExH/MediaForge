@@ -9,14 +9,16 @@ MediaForge aims to progressively improve correctness, security, performance, mai
 
 ## Status
 
-**Phase 0 (Repository Discovery) complete.**  
+**Phase 0 (Repository Discovery) and Phase 1 (Build & CI Foundation) complete.**
+
 See:
 
 - [docs/BASELINE.md](docs/BASELINE.md) — upstream structure, build, licensing, known constraints
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — development journal
 - [docs/ROADMAP.md](docs/ROADMAP.md) — long-term roadmap
+- [docs/build/BUILDING.md](docs/build/BUILDING.md) — developer build guide and CI description
 
-No functional source modifications have been made yet.
+CI (GitHub Actions) builds upstream FFmpeg on Linux (GCC/Clang + ASan), Windows (MSYS2), and macOS with smoke tests. No functional MediaForge source patches yet.
 
 ## Upstream
 
@@ -34,7 +36,9 @@ All required attribution, license notices, and source-availability obligations w
 
 ## Building
 
-Full source and build instructions will be established in Phase 1. For now, refer to upstream FFmpeg documentation.
+See [docs/build/BUILDING.md](docs/build/BUILDING.md) for prerequisites, configure examples, platform notes, sanitizer builds, and CI details.
+
+CI currently clones and builds upstream FFmpeg. MediaForge-specific patches will appear in later phases.
 
 ## License
 
