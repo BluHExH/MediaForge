@@ -2,6 +2,9 @@
 
 ## What MediaForge is today
 
+Transitioning toward an **in-tree FFmpeg baseline** (`vendor/ffmpeg`, pin n7.1.5). Until the full tree is committed, CI may still clone the pin. See [architecture/SOURCE_INTEGRATION_PLAN.md](architecture/SOURCE_INTEGRATION_PLAN.md).
+
+
 A **pre-release** open-source project that:
 
 1. Documents and CI-builds **upstream FFmpeg**

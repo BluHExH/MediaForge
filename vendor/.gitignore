@@ -1,0 +1,6 @@
+# Build outputs under vendored FFmpeg
+ffmpeg/**/*.o
+ffmpeg/**/*.a
+ffmpeg/ffmpeg
+ffmpeg/ffprobe
+ffmpeg/ffbuild/

@@ -132,9 +132,15 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 - Optional informational upstream-tip workflow
 - Report: docs/continuous/CYCLE_02_REPORT.md
 
+### Source architecture transition (2026-08-26)
+
+- Plan: docs/architecture/SOURCE_INTEGRATION_PLAN.md (vendored snapshot, not submodule)
+- Patch model + vendor-ffmpeg.sh; CI uses vendor/ffmpeg when present
+- Full tree import blocked by environment timeouts — see SOURCE_TRANSITION_REPORT.md
+
 ## Current Phase
 
-Continuous engineering. Next: batch / validate-only (Cycle 03 candidates).
+Source-based migration Stage 1–3 infrastructure. Complete vendor/ffmpeg import next.
 
 ## Architecture Decisions
 

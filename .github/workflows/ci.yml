@@ -60,9 +60,15 @@ jobs:
           echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
           echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
 
-      - name: Clone upstream FFmpeg
+      - name: Obtain FFmpeg sources
         run: |
-          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          if [ -f vendor/ffmpeg/configure ]; then
+            echo "Using in-tree vendor/ffmpeg"
+            ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
+          else
+            echo "vendor/ffmpeg missing; cloning pinned baseline"
+            git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          fi
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
           echo "Building FFmpeg commit: $(git -C ffmpeg rev-parse --short HEAD)"
 
@@ -134,9 +140,15 @@ jobs:
           echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
           echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
 
-      - name: Clone upstream FFmpeg
+      - name: Obtain FFmpeg sources
         run: |
-          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          if [ -f vendor/ffmpeg/configure ]; then
+            echo "Using in-tree vendor/ffmpeg"
+            ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
+          else
+            echo "vendor/ffmpeg missing; cloning pinned baseline"
+            git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          fi
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (standard)
@@ -197,9 +209,15 @@ jobs:
           echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
           echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
 
-      - name: Clone upstream FFmpeg
+      - name: Obtain FFmpeg sources
         run: |
-          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          if [ -f vendor/ffmpeg/configure ]; then
+            echo "Using in-tree vendor/ffmpeg"
+            ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
+          else
+            echo "vendor/ffmpeg missing; cloning pinned baseline"
+            git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          fi
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (Clang)
@@ -254,9 +272,15 @@ jobs:
           echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
           echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
 
-      - name: Clone upstream FFmpeg
+      - name: Obtain FFmpeg sources
         run: |
-          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          if [ -f vendor/ffmpeg/configure ]; then
+            echo "Using in-tree vendor/ffmpeg"
+            ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
+          else
+            echo "vendor/ffmpeg missing; cloning pinned baseline"
+            git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          fi
 
       - name: Configure (ASan + UBSan)
         working-directory: ffmpeg
@@ -352,9 +376,15 @@ jobs:
           echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
           echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
 
-      - name: Clone upstream FFmpeg
+      - name: Obtain FFmpeg sources
         run: |
-          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          if [ -f vendor/ffmpeg/configure ]; then
+            echo "Using in-tree vendor/ffmpeg"
+            ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
+          else
+            echo "vendor/ffmpeg missing; cloning pinned baseline"
+            git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          fi
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (minimal)
@@ -410,9 +440,15 @@ jobs:
           echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
           echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
 
-      - name: Clone upstream FFmpeg
+      - name: Obtain FFmpeg sources
         run: |
-          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          if [ -f vendor/ffmpeg/configure ]; then
+            echo "Using in-tree vendor/ffmpeg"
+            ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
+          else
+            echo "vendor/ffmpeg missing; cloning pinned baseline"
+            git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
+          fi
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (minimal)
