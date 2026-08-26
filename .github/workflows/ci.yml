@@ -62,6 +62,10 @@ jobs:
 
       - name: Obtain FFmpeg sources
         run: |
+          if [ ! -f vendor/ffmpeg/configure ] && [ -f vendor/ffmpeg-n7.1.5.tar.gz ]; then
+            echo "Extracting vendored archive to vendor/ffmpeg"
+            bash scripts/vendor-ffmpeg.sh
+          fi
           if [ -f vendor/ffmpeg/configure ]; then
             echo "Using in-tree vendor/ffmpeg"
             ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
@@ -142,6 +146,10 @@ jobs:
 
       - name: Obtain FFmpeg sources
         run: |
+          if [ ! -f vendor/ffmpeg/configure ] && [ -f vendor/ffmpeg-n7.1.5.tar.gz ]; then
+            echo "Extracting vendored archive to vendor/ffmpeg"
+            bash scripts/vendor-ffmpeg.sh
+          fi
           if [ -f vendor/ffmpeg/configure ]; then
             echo "Using in-tree vendor/ffmpeg"
             ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
@@ -211,6 +219,10 @@ jobs:
 
       - name: Obtain FFmpeg sources
         run: |
+          if [ ! -f vendor/ffmpeg/configure ] && [ -f vendor/ffmpeg-n7.1.5.tar.gz ]; then
+            echo "Extracting vendored archive to vendor/ffmpeg"
+            bash scripts/vendor-ffmpeg.sh
+          fi
           if [ -f vendor/ffmpeg/configure ]; then
             echo "Using in-tree vendor/ffmpeg"
             ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
@@ -274,6 +286,10 @@ jobs:
 
       - name: Obtain FFmpeg sources
         run: |
+          if [ ! -f vendor/ffmpeg/configure ] && [ -f vendor/ffmpeg-n7.1.5.tar.gz ]; then
+            echo "Extracting vendored archive to vendor/ffmpeg"
+            bash scripts/vendor-ffmpeg.sh
+          fi
           if [ -f vendor/ffmpeg/configure ]; then
             echo "Using in-tree vendor/ffmpeg"
             ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
@@ -378,6 +394,10 @@ jobs:
 
       - name: Obtain FFmpeg sources
         run: |
+          if [ ! -f vendor/ffmpeg/configure ] && [ -f vendor/ffmpeg-n7.1.5.tar.gz ]; then
+            echo "Extracting vendored archive to vendor/ffmpeg"
+            bash scripts/vendor-ffmpeg.sh
+          fi
           if [ -f vendor/ffmpeg/configure ]; then
             echo "Using in-tree vendor/ffmpeg"
             ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
@@ -442,6 +462,10 @@ jobs:
 
       - name: Obtain FFmpeg sources
         run: |
+          if [ ! -f vendor/ffmpeg/configure ] && [ -f vendor/ffmpeg-n7.1.5.tar.gz ]; then
+            echo "Extracting vendored archive to vendor/ffmpeg"
+            bash scripts/vendor-ffmpeg.sh
+          fi
           if [ -f vendor/ffmpeg/configure ]; then
             echo "Using in-tree vendor/ffmpeg"
             ln -sfn "$GITHUB_WORKSPACE/vendor/ffmpeg" ffmpeg
