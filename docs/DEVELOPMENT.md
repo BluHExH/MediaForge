@@ -48,9 +48,20 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete (documentation + CI process hardening).
 
+### Phase 4 — Performance Engineering (2026-08-26)
+
+- Created `docs/performance/` (baseline, reproducibility, profiling, regression policy, benchmarks log, report, ADR-0004).
+- Created `benchmarks/` with `scripts/run_smoke_benchmarks.sh`, fixtures/results placeholders.
+- Measured **system** ffmpeg 6.1.1 on workspace (2× Xeon vCPU, 1.2 GiB): recorded real wall/RSS numbers; clearly labeled not MediaForge-built.
+- Added optional `.github/workflows/performance.yml` (workflow_dispatch + weekly; non-blocking artifacts).
+- **No FFmpeg source optimizations** — no MediaForge-owned hot path; measurement-first decision (ADR-0004).
+- Security guarantees unchanged; no speculative patches.
+
+**Status**: Complete (infrastructure + baseline; zero speculative speedups).
+
 ## Current Phase
 
-Phase 3 complete. Next: Phase 4 — Performance Engineering (per ROADMAP), or continue security loop as patches appear.
+Phase 4 complete. Next: Phase 5 — Modern CLI / Developer Experience (per ROADMAP).
 
 ## Architecture Decisions
 
@@ -85,4 +96,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 3.*
+*Updated at end of Phase 4.*

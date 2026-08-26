@@ -396,4 +396,7 @@ jobs:
           test -f docs/security/FUZZING.md
           test -f docs/security/SECURITY_TESTING.md
           test -f docs/security/SECURITY_AUDIT.md
+          test -f docs/performance/PERFORMANCE_BASELINE.md
+          test -f docs/performance/PERFORMANCE_REPORT.md
+          test -f benchmarks/scripts/run_smoke_benchmarks.sh
           echo "Required documentation files present."

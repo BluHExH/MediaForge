@@ -1,0 +1,8 @@
+date_utc=20260826T074926Z
+ffmpeg_bin=/usr/bin/ffmpeg
+ffmpeg_version=ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers
+uname=Linux 6.12.8+ x86_64
+nproc=2
+cpu_model=Intel(R) Xeon(R) Platinum 8481C CPU @ 2.70GHz
+mem_total_kb=1255348
+mediaforge_commit=df2372770525bee18c3c0299800127c45a4e88a7

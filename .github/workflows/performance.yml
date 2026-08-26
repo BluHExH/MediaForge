@@ -1,0 +1,75 @@
+# MediaForge — optional performance smoke (non-blocking philosophy)
+#
+# Labels timings as environment-dependent. Does not fail the workflow on
+# wall-clock variance. Use workflow_dispatch or weekly schedule.
+
+name: Performance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # weekly Monday 06:00 UTC
+
+concurrency:
+  group: perf-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FFMPEG_REF: master
+  FFMPEG_REPO: https://github.com/FFmpeg/FFmpeg.git
+
+jobs:
+  smoke-benchmarks:
+    name: Smoke benchmarks (CI-built ffmpeg)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout MediaForge
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential yasm nasm pkg-config time
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Configure (standard-ish, non-sanitizer)
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --disable-network \
+            --disable-autodetect \
+            --enable-gpl \
+            --enable-libx264 \
+            --enable-protocol=file \
+            --enable-demuxer=rawvideo,lavfi \
+            --enable-muxer=null,rawvideo \
+            --enable-decoder=rawvideo \
+            --enable-encoder=rawvideo,libx264 \
+            --enable-filter=null,scale,anull,aresample,sine,testsrc2 \
+            --enable-ffmpeg \
+            --disable-doc \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: Run smoke benchmarks
+        run: |
+          export FFMPEG="${GITHUB_WORKSPACE}/ffmpeg/ffmpeg"
+          chmod +x benchmarks/scripts/run_smoke_benchmarks.sh
+          ./benchmarks/scripts/run_smoke_benchmarks.sh
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> benchmarks/results/ci_meta.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmarks/results/
+          retention-days: 30

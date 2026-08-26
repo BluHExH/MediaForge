@@ -1,0 +1,7 @@
+# MediaForge smoke benchmarks 20260826T075023Z
+startup_version best_elapsed_s=0.03 best_maxrss_kb=46304
+decode_null_testsrc_640x360_3s best_elapsed_s=0.06 best_maxrss_kb=49084
+scale_640x360_to_320x180_3s best_elapsed_s=0.07 best_maxrss_kb=51040
+encode_x264_ultrafast_640x360_3s best_elapsed_s=0.10 best_maxrss_kb=56228
+transcode_scale_x264_640x360_3s best_elapsed_s=0.09 best_maxrss_kb=53592
+audio_aresample_48k_to_44k_5s best_elapsed_s=0.05 best_maxrss_kb=49668
