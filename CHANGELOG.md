@@ -5,6 +5,7 @@ MediaForge-specific changes only. Upstream FFmpeg history lives in the FFmpeg pr
 ## [Unreleased]
 
 ### Added
+- **Stage 4**: `verify-vendored-ffmpeg.sh` completeness gate; full import blocked by agent network (see STAGE_04_REPORT.md)
 
 - **Source transition (Stage 1–3 infra)**: SOURCE_INTEGRATION_PLAN, vendor-ffmpeg.sh, CI prefers vendor/ffmpeg
 - **Cycle 02**: Pin FFmpeg baseline to n7.1.5 via config/upstream.env; CI/release provenance
