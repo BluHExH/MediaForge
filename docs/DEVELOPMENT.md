@@ -89,9 +89,19 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete.
 
+### Phase 8 — Comprehensive Testing & Fuzzing (2026-08-26)
+
+- `docs/testing/` suite: baseline, architecture, FATE honesty, fuzzing, corpus, triage, policy, release checklist, reports.
+- `tests/regression/run.sh` aggregates cli/media/hardware smokes.
+- Expanded CLI smoke (hwinfo, inspect missing).
+- Optional `.github/workflows/fate.yml` — L0 smoke only; **full FATE not run**.
+- No fabricated FATE/fuzz/coverage claims.
+
+**Status**: Complete.
+
 ## Current Phase
 
-Phase 7 complete. Next: Phase 8 — Testing and Fuzzing (per ROADMAP).
+Phase 8 complete. Next: Phase 9 — Documentation and Branding (per ROADMAP).
 
 ## Architecture Decisions
 
@@ -126,4 +136,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 7.*
+*Updated at end of Phase 8.*

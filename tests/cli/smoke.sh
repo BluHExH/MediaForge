@@ -75,6 +75,17 @@ if [ -x "$HELPER" ] || [ -f "$HELPER" ]; then
     set -e
     test \"\$rc\" -eq 2
   "
+
+  check "helper_hwinfo" bash -c "
+    bash $HELPER hwinfo | grep -q 'MediaForge hwinfo'
+  "
+  check "helper_inspect_missing_fails" bash -c "
+    set +e
+    bash $HELPER inspect /nonexistent/mf_cli_missing.mp4 >/dev/null 2>&1
+    rc=\$?
+    set -e
+    test \"\$rc\" -ne 0
+  "
   check "helper_probe_passthrough" bash -c "
     bash $HELPER probe -v quiet -print_format json -show_format -f lavfi -i 'sine=f=440:d=0.05' \
       | grep -q '\"format\"'

@@ -9,7 +9,7 @@ MediaForge aims to progressively improve correctness, security, performance, mai
 
 ## Status
 
-**Phases 0–7 complete** (through Hardware Acceleration documentation & hwinfo).
+**Phases 0–8 complete** (through Testing & Fuzzing infrastructure documentation).
 
 See:
 
@@ -23,6 +23,7 @@ See:
 - [docs/cli/](docs/cli/) — CLI baseline, examples, exit codes
 - [docs/media/](docs/media/) — media feature inventory and helpers
 - [docs/hardware/](docs/hardware/) — HW baseline, requirements, troubleshooting
+- [docs/testing/](docs/testing/) — test policy, FATE notes, fuzzing architecture
 - [CHANGELOG.md](CHANGELOG.md) — MediaForge-specific changes
 - [benchmarks/](benchmarks/) — reproducible smoke benchmark scripts
 - [scripts/mediaforge](scripts/mediaforge) — optional task-oriented helper

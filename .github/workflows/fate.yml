@@ -1,0 +1,77 @@
+# Optional FATE-related workflow. Does NOT claim full FATE on green.
+# Default: document environment and run a minimal build + lavfi smoke
+# equivalent to L0. Expand targets only when samples and time allow.
+
+name: FATE
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 7 * * 1"
+
+concurrency:
+  group: fate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FFMPEG_REF: master
+  FFMPEG_REPO: https://github.com/FFmpeg/FFmpeg.git
+
+jobs:
+  fate-note-and-smoke:
+    name: FATE policy smoke (not full suite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential yasm nasm pkg-config
+
+      - name: Clone upstream FFmpeg
+        run: |
+          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Configure minimal
+        working-directory: ffmpeg
+        run: |
+          ./configure \
+            --disable-everything \
+            --disable-network \
+            --disable-autodetect \
+            --enable-protocol=file \
+            --enable-demuxer=rawvideo,lavfi \
+            --enable-muxer=null,rawvideo \
+            --enable-decoder=rawvideo \
+            --enable-encoder=rawvideo \
+            --enable-filter=null,scale,anull,testsrc2,color,sine \
+            --enable-ffmpeg --enable-ffprobe --disable-doc \
+            || { cat ffbuild/config.log; exit 1; }
+
+      - name: Build
+        working-directory: ffmpeg
+        run: make -j"$(nproc)"
+
+      - name: L0 smoke (not FATE)
+        working-directory: ffmpeg
+        run: |
+          ./ffmpeg -version
+          ./ffmpeg -f lavfi -i "testsrc2=s=64x64:d=0.2" -f null -
+          echo "NOTE: Full upstream FATE was NOT executed in this job."
+          echo "See docs/testing/FATE.md"
+
+      - name: Upload note
+        run: |
+          mkdir -p fate-artifacts
+          echo "full_fate=not_run" > fate-artifacts/status.txt
+          echo "ffmpeg_commit=${FFMPEG_COMMIT}" >> fate-artifacts/status.txt
+        # artifact optional
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fate-status
+          path: fate-artifacts/
+          retention-days: 14

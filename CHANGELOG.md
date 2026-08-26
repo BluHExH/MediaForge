@@ -6,6 +6,7 @@ MediaForge-specific changes only. Upstream FFmpeg history lives in the FFmpeg pr
 
 ### Added
 
+- **Phase 8**: Testing documentation suite, regression aggregate, optional FATE workflow (not full FATE)
 - **Phase 7**: Hardware docs, `mediaforge hwinfo`, capability-aware hardware smoke tests (skip without GPU)
 - **Phase 6**: Media processing helpers on `scripts/mediaforge`:
   - `inspect` — human-readable media summary via ffprobe  

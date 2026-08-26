@@ -409,12 +409,13 @@ jobs:
           test -f CHANGELOG.md
           test -f docs/hardware/HARDWARE_BASELINE.md
           test -f tests/hardware/smoke.sh
+          test -f docs/testing/TEST_POLICY.md
+          test -f docs/testing/FATE.md
+          test -f tests/regression/run.sh
           echo "Required documentation files present."
 
-      - name: CLI, media, and hardware smoke tests
+      - name: MediaForge regression suite
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
-          bash tests/cli/smoke.sh
-          bash tests/media/smoke.sh
-          bash tests/hardware/smoke.sh
+          bash tests/regression/run.sh
