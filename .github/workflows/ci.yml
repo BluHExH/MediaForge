@@ -407,11 +407,14 @@ jobs:
           test -f docs/UPSTREAM_STRATEGY.md
           test -f tests/media/smoke.sh
           test -f CHANGELOG.md
+          test -f docs/hardware/HARDWARE_BASELINE.md
+          test -f tests/hardware/smoke.sh
           echo "Required documentation files present."
 
-      - name: CLI and media smoke tests
+      - name: CLI, media, and hardware smoke tests
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
           bash tests/cli/smoke.sh
           bash tests/media/smoke.sh
+          bash tests/hardware/smoke.sh

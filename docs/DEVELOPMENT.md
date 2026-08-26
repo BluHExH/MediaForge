@@ -80,9 +80,18 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete.
 
+### Phase 7 — Hardware Acceleration (2026-08-26)
+
+- Hardware docs: baseline, requirements, troubleshooting, report, ADR-0006.
+- `mediaforge hwinfo` lists hwaccels/encoders and probes `/dev/dri` / nvidia-smi.
+- `tests/hardware/smoke.sh`: software always; runtime HW **SKIP** without device.
+- No parallel GPU API; no fabricated GPU benchmarks; workspace had no DRI/NVIDIA.
+
+**Status**: Complete.
+
 ## Current Phase
 
-Phase 6 complete. Next: Phase 7 — Hardware Acceleration (per ROADMAP).
+Phase 7 complete. Next: Phase 8 — Testing and Fuzzing (per ROADMAP).
 
 ## Architecture Decisions
 
@@ -117,4 +126,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 6.*
+*Updated at end of Phase 7.*

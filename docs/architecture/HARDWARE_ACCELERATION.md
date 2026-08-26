@@ -30,3 +30,10 @@ Some filters operate on HW frames (scale_cuda, overlay_cuda, etc.). Negotiation 
 Do not claim support for a backend unless it is present in the tree and enabled at configure time. Always provide software fallback paths.
 
 *Verified against libavutil hwcontext*.h listing and avutil.h library list.*
+
+## Phase 7 notes (MediaForge)
+
+- User-facing docs: `docs/hardware/`
+- Capability helper: `mediaforge hwinfo` (list + probe; never requires GPU for other commands)
+- Policy: ADR-0006 — hardware optional; tests skip when devices missing
+- Runtime GPU transcode was **not** verified in the default CPU-only workspace/CI

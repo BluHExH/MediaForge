@@ -5,7 +5,7 @@ set -euo pipefail
 
 FFMPEG="${FFMPEG:-ffmpeg}"
 FFPROBE="${FFPROBE:-ffprobe}"
-HELPER_VERSION="1.1 (Phase 6)"
+HELPER_VERSION="1.2 (Phase 7)"
 
 usage() {
   cat <<'EOF'
@@ -21,6 +21,7 @@ Usage:
                                           Extract one frame (default TS=00:00:01)
   mediaforge extract-audio <input> <output>
                                           Audio only (-vn); copy or light encode by ext
+  mediaforge hwinfo                       List hwaccels / hw encoders / runtime probe
 
   mediaforge probe [ffprobe-args...]
   mediaforge ffmpeg [ffmpeg-args...]
@@ -134,6 +135,32 @@ cmd_extract_audio() {
     -i "$input" -vn "${audio_opts[@]}" "$output"
 }
 
+
+cmd_hwinfo() {
+  need_tools
+  echo "=== MediaForge hwinfo ==="
+  echo "ffmpeg: $(command -v "$FFMPEG")"
+  echo "--- hwaccels (build/list) ---"
+  "$FFMPEG" -hide_banner -hwaccels 2>/dev/null || true
+  echo "--- hardware-ish encoders (name match) ---"
+  "$FFMPEG" -hide_banner -encoders 2>/dev/null | grep -iE 'nvenc|qsv|vaapi|amf|videotoolbox|v4l2m2m|vulkan|cuda' || echo "(none listed)"
+  echo "--- hardware-ish decoders (name match) ---"
+  "$FFMPEG" -hide_banner -decoders 2>/dev/null | grep -iE 'cuvid|nvdec|qsv|vaapi|videotoolbox|v4l2m2m|vulkan|cuda' || echo "(none listed)"
+  echo "--- runtime probe ---"
+  if [ -d /dev/dri ]; then
+    echo "dri_nodes: $(ls /dev/dri 2>/dev/null | tr '\n' ' ')"
+  else
+    echo "dri_nodes: (none)"
+  fi
+  if command -v nvidia-smi >/dev/null 2>&1; then
+    echo "nvidia-smi: available"
+    nvidia-smi -L 2>/dev/null | head -5 || true
+  else
+    echo "nvidia-smi: not found"
+  fi
+  echo "note: listed encoders require matching drivers/devices at runtime"
+}
+
 cmd="${1:-help}"
 shift || true
 
@@ -148,6 +175,7 @@ case "$cmd" in
   inspect) cmd_inspect "$@" ;;
   thumbnail) cmd_thumbnail "$@" ;;
   extract-audio|extract_audio) cmd_extract_audio "$@" ;;
+  hwinfo|hw) cmd_hwinfo "$@" ;;
   probe|ffprobe) exec "$FFPROBE" "$@" ;;
   ffmpeg|run) exec "$FFMPEG" "$@" ;;
   *)
