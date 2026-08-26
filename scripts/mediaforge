@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # MediaForge optional CLI helper — discoverability + small workflows.
 # Does NOT replace ffmpeg/ffprobe. Real work is always delegated upstream.
+# Process invocation uses argv arrays (no eval of user input).
 set -euo pipefail
 
 FFMPEG="${FFMPEG:-ffmpeg}"
 FFPROBE="${FFPROBE:-ffprobe}"
-HELPER_VERSION="1.3 (Phase 10)"
+HELPER_VERSION="1.4 (Cycle 01)"
+INSPECT_SCHEMA_VERSION="1"
 
 usage() {
   cat <<'EOF'
@@ -16,11 +18,12 @@ Usage:
   mediaforge recipes
   mediaforge version
 
-  mediaforge inspect <input>              Human-readable summary (ffprobe)
+  mediaforge inspect <input> [--json]
+                                          Summary via ffprobe (human or JSON schema v1)
   mediaforge thumbnail <input> <output> [--time TS]
                                           Extract one frame (default TS=00:00:01)
   mediaforge extract-audio <input> <output>
-                                          Audio only (-vn); copy or light encode by ext
+                                          Audio only (-vn); codec by output extension
   mediaforge hwinfo                       List hwaccels / hw encoders / runtime probe
 
   mediaforge probe [ffprobe-args...]
@@ -40,47 +43,181 @@ recipes() {
   cat <<'EOF'
 Common recipes (also: mediaforge inspect|thumbnail|extract-audio):
 
-  Inspect (JSON):
+  Inspect JSON (MediaForge schema v1):
+    mediaforge inspect INPUT --json
+
+  Inspect (raw ffprobe JSON):
     ffprobe -v quiet -print_format json -show_format -show_streams INPUT
 
   Remux copy:
     ffmpeg -nostdin -y -i INPUT -c copy OUTPUT
 
-  H.264 + AAC:
-    ffmpeg -nostdin -y -i INPUT -c:v libx264 -crf 23 -c:a aac OUTPUT
-
   Extract audio:
-    mediaforge extract-audio INPUT OUT.m4a
+    mediaforge extract-audio INPUT OUT.wav
 
   Thumbnail:
     mediaforge thumbnail INPUT thumb.jpg --time 00:00:05
-
-  Resize width 1280 (keep AR):
-    ffmpeg -nostdin -y -i INPUT -vf scale=1280:-2 -c:v libx264 -c:a copy OUTPUT
 
 Full list: docs/cli/EXAMPLES.md
 EOF
 }
 
-die() { echo "mediaforge: $*" >&2; exit 1; }
+die() {
+  echo "mediaforge: error: $*" >&2
+  exit 1
+}
+
+hint() {
+  echo "mediaforge: hint: $*" >&2
+}
 
 need_tools() {
-  command -v "$FFMPEG" >/dev/null 2>&1 || die "ffmpeg not found (set FFMPEG=)"
-  command -v "$FFPROBE" >/dev/null 2>&1 || die "ffprobe not found (set FFPROBE=)"
+  if ! command -v "$FFMPEG" >/dev/null 2>&1; then
+    die "ffmpeg not found on PATH (set FFMPEG=/path/to/ffmpeg)"
+  fi
+  if ! command -v "$FFPROBE" >/dev/null 2>&1; then
+    die "ffprobe not found on PATH (set FFPROBE=/path/to/ffprobe)"
+  fi
+}
+
+# Fail early: readable regular file or lavfi/device-style inputs starting with special schemes are passed through.
+require_input_path() {
+  local path="$1"
+  if [ -z "$path" ]; then
+    die "input path is empty"
+  fi
+  # Allow lavfi and explicit protocol URLs for power users
+  case "$path" in
+    *://*|lavfi:*) return 0 ;;
+  esac
+  if [ ! -e "$path" ]; then
+    die "input does not exist: $path"
+    # unreachable
+  fi
+  if [ ! -r "$path" ]; then
+    die "input is not readable: $path"
+  fi
+  if [ -d "$path" ]; then
+    die "input is a directory, expected a media file: $path"
+  fi
+}
+
+require_output_parent() {
+  local out="$1"
+  local dir
+  dir="$(dirname -- "$out")"
+  if [ ! -d "$dir" ]; then
+    die "output directory does not exist: $dir"
+  fi
+  if [ ! -w "$dir" ]; then
+    die "output directory is not writable: $dir"
+  fi
+}
+
+validate_output_file() {
+  local out="$1"
+  if [ ! -f "$out" ]; then
+    die "processing reported success but output file is missing: $out"
+  fi
+  if [ ! -s "$out" ]; then
+    die "output file is empty: $out"
+  fi
+  # Lightweight probe; do not fail the whole tool if probe is overly strict on images
+  if ! "$FFPROBE" -v error -show_entries format=format_name -of csv=p=0 "$out" >/dev/null 2>&1; then
+    hint "ffprobe could not summarize output (file exists and is non-empty): $out"
+  fi
+}
+
+json_escape() {
+  # Minimal JSON string escape for control characters and quotes
+  python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"
 }
 
 cmd_inspect() {
   need_tools
-  [ "$#" -ge 1 ] || die "usage: mediaforge inspect <input>"
-  local input="$1"
+  local input="" json=0
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --json) json=1; shift ;;
+      -h|--help)
+        echo "usage: mediaforge inspect <input> [--json]"
+        return 0
+        ;;
+      -*)
+        die "unknown inspect option: $1 (try --json)"
+        ;;
+      *)
+        if [ -n "$input" ]; then
+          die "unexpected argument: $1"
+        fi
+        input="$1"
+        shift
+        ;;
+    esac
+  done
+  [ -n "$input" ] || die "usage: mediaforge inspect <input> [--json]"
+  require_input_path "$input"
+
+  if [ "$json" -eq 1 ]; then
+    # Compose MediaForge schema v1 from ffprobe JSON (stable subset)
+    local raw
+    if ! raw="$("$FFPROBE" -v quiet -print_format json -show_format -show_streams "$input" 2>/dev/null)"; then
+      die "ffprobe failed for input: $input (is it a supported media file?)"
+    fi
+    MF_VER="unknown"
+    ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+    if [ -f "$ROOT/VERSION" ]; then
+      MF_VER="$(tr -d '[:space:]' < "$ROOT/VERSION")"
+    fi
+    INSPECT_RAW="$raw" MF_VER="$MF_VER" SCHEMA="$INSPECT_SCHEMA_VERSION" INPUT_PATH="$input" python3 - <<'PY'
+import json, os
+raw = os.environ["INSPECT_RAW"]
+data = json.loads(raw)
+fmt = data.get("format") or {}
+streams_out = []
+for s in data.get("streams") or []:
+    streams_out.append({
+        "index": s.get("index"),
+        "codec_type": s.get("codec_type"),
+        "codec_name": s.get("codec_name"),
+        "width": s.get("width"),
+        "height": s.get("height"),
+        "pix_fmt": s.get("pix_fmt"),
+        "sample_rate": s.get("sample_rate"),
+        "channels": s.get("channels"),
+        "channel_layout": s.get("channel_layout"),
+        "r_frame_rate": s.get("r_frame_rate"),
+        "bit_rate": s.get("bit_rate"),
+    })
+out = {
+    "tool": "mediaforge",
+    "schema_version": int(os.environ["SCHEMA"]),
+    "version": os.environ["MF_VER"],
+    "input": os.environ["INPUT_PATH"],
+    "format": {
+        "format_name": fmt.get("format_name"),
+        "duration": fmt.get("duration"),
+        "size": fmt.get("size"),
+        "bit_rate": fmt.get("bit_rate"),
+    },
+    "streams": streams_out,
+    "warnings": [],
+}
+print(json.dumps(out, indent=2, sort_keys=False))
+PY
+    return 0
+  fi
+
   echo "=== MediaForge inspect ==="
   echo "input: $input"
-  # Compact, script-friendly key=value style from ffprobe
-  "$FFPROBE" -v error \
+  if ! "$FFPROBE" -v error \
     -show_entries format=format_name,duration,size,bit_rate \
     -show_entries stream=index,codec_type,codec_name,width,height,pix_fmt,sample_rate,channels,channel_layout,r_frame_rate \
     -of default=noprint_wrappers=1:nokey=0 \
     "$input"
+  then
+    die "ffprobe failed for input: $input"
+  fi
 }
 
 cmd_thumbnail() {
@@ -91,50 +228,47 @@ cmd_thumbnail() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --time)
-        [ "$#" -ge 2 ] || die "--time requires a value"
+        [ "$#" -ge 2 ] || die "--time requires a value (example: 00:00:01)"
         ts="$2"
         shift 2
         ;;
-      *) die "unknown option: $1" ;;
+      *) die "unknown option: $1 (supported: --time)" ;;
     esac
   done
-  # -ss before -i for faster seek when possible; fine for helper defaults
-  "$FFMPEG" -nostdin -y -hide_banner -loglevel error \
+  require_input_path "$input"
+  require_output_parent "$output"
+  if ! "$FFMPEG" -nostdin -y -hide_banner -loglevel error \
     -ss "$ts" -i "$input" -frames:v 1 "$output"
+  then
+    die "thumbnail failed (check codec support and --time within media duration)"
+  fi
+  validate_output_file "$output"
 }
 
 cmd_extract_audio() {
   need_tools
   [ "$#" -ge 2 ] || die "usage: mediaforge extract-audio <input> <output>"
   local input="$1" output="$2"
+  require_input_path "$input"
+  require_output_parent "$output"
   local ext="${output##*.}"
   ext="$(printf '%s' "$ext" | tr 'A-Z' 'a-z')"
   local -a audio_opts
   case "$ext" in
-    wav)
-      audio_opts=(-c:a pcm_s16le)
-      ;;
-    mp3)
-      audio_opts=(-c:a libmp3lame -q:a 2)
-      ;;
-    m4a|aac)
-      audio_opts=(-c:a aac -b:a 192k)
-      ;;
-    opus)
-      audio_opts=(-c:a libopus -b:a 128k)
-      ;;
-    flac)
-      audio_opts=(-c:a flac)
-      ;;
-    *)
-      # Try stream copy; user can re-run with a specific extension if it fails
-      audio_opts=(-c:a copy)
-      ;;
+    wav) audio_opts=(-c:a pcm_s16le) ;;
+    mp3) audio_opts=(-c:a libmp3lame -q:a 2) ;;
+    m4a|aac) audio_opts=(-c:a aac -b:a 192k) ;;
+    opus) audio_opts=(-c:a libopus -b:a 128k) ;;
+    flac) audio_opts=(-c:a flac) ;;
+    *) audio_opts=(-c:a copy) ;;
   esac
-  "$FFMPEG" -nostdin -y -hide_banner -loglevel error \
+  if ! "$FFMPEG" -nostdin -y -hide_banner -loglevel error \
     -i "$input" -vn "${audio_opts[@]}" "$output"
+  then
+    die "extract-audio failed (try a different output extension, e.g. .wav)"
+  fi
+  validate_output_file "$output"
 }
-
 
 cmd_hwinfo() {
   need_tools
@@ -171,7 +305,7 @@ case "$cmd" in
     ROOT="$(cd "$(dirname "$0")/.." && pwd)"
     MF_VER="unknown"
     if [ -f "$ROOT/VERSION" ]; then
-      MF_VER="$(tr -d "[:space:]" < "$ROOT/VERSION")"
+      MF_VER="$(tr -d '[:space:]' < "$ROOT/VERSION")"
     fi
     COMMIT="unknown"
     if command -v git >/dev/null 2>&1 && [ -d "$ROOT/.git" ]; then
@@ -189,8 +323,8 @@ case "$cmd" in
   probe|ffprobe) exec "$FFPROBE" "$@" ;;
   ffmpeg|run) exec "$FFMPEG" "$@" ;;
   *)
-    echo "Unknown command: $cmd" >&2
-    echo "Try: mediaforge help" >&2
+    echo "mediaforge: error: unknown command: $cmd" >&2
+    echo "mediaforge: hint: try: mediaforge help" >&2
     exit 2
     ;;
 esac

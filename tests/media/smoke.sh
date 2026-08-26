@@ -39,6 +39,11 @@ check "inspect_reports_streams" bash -c "
   bash '$HELPER' inspect '$TMP/clip.mkv' 2>/dev/null | grep -Eq 'codec_type|codec_name|width'
 "
 
+check "inspect_json_schema" bash -c "
+  bash '$HELPER' inspect '$TMP/clip.mkv' --json | grep -q schema_version
+  bash '$HELPER' inspect '$TMP/clip.mkv' --json | grep -q mediaforge
+"
+
 check "inspect_missing_fails" bash -c "
   set +e
   bash '$HELPER' inspect '$TMP/missing.mp4' >/dev/null 2>&1

@@ -52,3 +52,8 @@
 - Public C API additions  
 - ABI changes  
 - Hardware device auto-magic without user flags  
+
+
+## Cycle 01 update
+
+`inspect --json` implements stable schema v1 (see docs/cli/INSPECT_JSON.md).
