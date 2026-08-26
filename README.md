@@ -9,7 +9,7 @@ MediaForge aims to progressively improve correctness, security, performance, mai
 
 ## Status
 
-**Phases 0–4 complete** (Discovery, Build/CI, Architecture, Security baseline, Performance measurement infra).
+**Phases 0–5 complete** (Discovery, Build/CI, Architecture, Security, Performance infra, CLI DX).
 
 See:
 
@@ -20,7 +20,9 @@ See:
 - [docs/architecture/](docs/architecture/) — architecture map and extension points
 - [docs/security/](docs/security/) — security baseline, threat model, audit log
 - [docs/performance/](docs/performance/) — benchmarks, baseline, regression policy
+- [docs/cli/](docs/cli/) — CLI baseline, examples, exit codes
 - [benchmarks/](benchmarks/) — reproducible smoke benchmark scripts
+- [scripts/mediaforge](scripts/mediaforge) — optional task-oriented helper
 
 CI (GitHub Actions) builds upstream FFmpeg on Linux (GCC/Clang + ASan), Windows (MSYS2), and macOS with smoke tests. No functional MediaForge source patches yet.
 

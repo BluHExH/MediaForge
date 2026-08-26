@@ -399,4 +399,14 @@ jobs:
           test -f docs/performance/PERFORMANCE_BASELINE.md
           test -f docs/performance/PERFORMANCE_REPORT.md
           test -f benchmarks/scripts/run_smoke_benchmarks.sh
+          test -f docs/cli/CLI_BASELINE.md
+          test -f docs/cli/EXAMPLES.md
+          test -f scripts/mediaforge
+          test -f tests/cli/smoke.sh
           echo "Required documentation files present."
+
+      - name: CLI smoke tests
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          bash tests/cli/smoke.sh

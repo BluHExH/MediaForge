@@ -59,9 +59,20 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete (infrastructure + baseline; zero speculative speedups).
 
+### Phase 5 — Modern CLI & Developer Experience (2026-08-26)
+
+- Created `docs/cli/` (baseline, principles, exit codes, examples, report, ADR-0005).
+- Optional helper `scripts/mediaforge` (help / recipes / ffmpeg|probe passthrough).
+- CLI smoke tests: `tests/cli/smoke.sh` (exit codes, JSON probe, lavfi, helper).
+- Updated `docs/architecture/CLI_ARCHITECTURE.md` Phase 5 notes.
+- **No fftools rewrite**; no option renames; compatibility-first.
+- Verified examples against system ffmpeg/ffprobe 6.1.1 where applicable.
+
+**Status**: Complete.
+
 ## Current Phase
 
-Phase 4 complete. Next: Phase 5 — Modern CLI / Developer Experience (per ROADMAP).
+Phase 5 complete. Next: Phase 6 — Media Processing Improvements (per ROADMAP).
 
 ## Architecture Decisions
 
@@ -96,4 +107,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 4.*
+*Updated at end of Phase 5.*

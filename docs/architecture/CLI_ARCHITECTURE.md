@@ -31,3 +31,10 @@ Uses demux and optional decode to print metadata, packets, or frames in text/JSO
 CLI UX improvements (clearer errors, progress, machine-readable output) are medium risk and high user value if compatibility is preserved. See Phase 5 roadmap.
 
 *Verified against fftools presence in tree and standard CLI behavior.*
+
+## Phase 5 notes (MediaForge)
+
+- Full CLI baseline and examples: `docs/cli/`
+- Optional helper: `scripts/mediaforge` (help/recipes/passthrough only)
+- Compatibility policy: ADR-0005 — do not break upstream option semantics
+- Core `fftools/` source is still upstream until MediaForge vendors a tree

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# MediaForge optional CLI helper — discoverability only.
+# Does NOT replace ffmpeg/ffprobe. Real work is always delegated upstream.
+set -euo pipefail
+
+FFMPEG="${FFMPEG:-ffmpeg}"
+FFPROBE="${FFPROBE:-ffprobe}"
+
+usage() {
+  cat <<'EOF'
+MediaForge helper (optional) — compatibility-first wrapper around FFmpeg tools.
+
+Usage:
+  mediaforge help              Show this help
+  mediaforge recipes           Common task recipes (documentation)
+  mediaforge version           Show helper + tool versions
+  mediaforge probe [args...]   Exec ffprobe with given args
+  mediaforge ffmpeg [args...]  Exec ffmpeg with given args
+  mediaforge run [args...]     Same as: mediaforge ffmpeg [args...]
+
+Environment:
+  FFMPEG   path to ffmpeg  (default: ffmpeg)
+  FFPROBE  path to ffprobe (default: ffprobe)
+
+Standard FFmpeg CLIs remain the primary interface. See docs/cli/EXAMPLES.md.
+EOF
+}
+
+recipes() {
+  cat <<'EOF'
+Common recipes (run with ffmpeg/ffprobe directly, or: mediaforge ffmpeg ...):
+
+  Inspect (JSON):
+    ffprobe -v quiet -print_format json -show_format -show_streams INPUT
+
+  Remux copy:
+    ffmpeg -nostdin -y -i INPUT -c copy OUTPUT
+
+  H.264 + AAC:
+    ffmpeg -nostdin -y -i INPUT -c:v libx264 -crf 23 -c:a aac OUTPUT
+
+  Extract audio:
+    ffmpeg -nostdin -y -i INPUT -vn -c:a copy OUT.m4a
+
+  Resize width 1280 (keep AR):
+    ffmpeg -nostdin -y -i INPUT -vf scale=1280:-2 -c:v libx264 -c:a copy OUTPUT
+
+  Thumbnail at 5s:
+    ffmpeg -nostdin -y -i INPUT -ss 00:00:05 -frames:v 1 thumb.jpg
+
+  Trim 30s from 00:00:10 (stream copy):
+    ffmpeg -nostdin -y -ss 00:00:10 -i INPUT -t 30 -c copy CLIP
+
+Full list: docs/cli/EXAMPLES.md
+EOF
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  help|-h|--help) usage ;;
+  recipes|examples) recipes ;;
+  version|--version)
+    echo "mediaforge-helper 1.0 (Phase 5)"
+    command -v "$FFMPEG" >/dev/null && "$FFMPEG" -version | head -1 || echo "ffmpeg: not found"
+    command -v "$FFPROBE" >/dev/null && "$FFPROBE" -version | head -1 || echo "ffprobe: not found"
+    ;;
+  probe|ffprobe)
+    exec "$FFPROBE" "$@"
+    ;;
+  ffmpeg|run)
+    exec "$FFMPEG" "$@"
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    echo "Try: mediaforge help" >&2
+    exit 2
+    ;;
+esac
