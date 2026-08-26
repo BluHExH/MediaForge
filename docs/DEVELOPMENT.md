@@ -109,9 +109,18 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete.
 
+### Phase 10 — Compatibility & Release Engineering (2026-08-26)
+
+- Compatibility baseline, versioning (`VERSION`=0.1.0-dev), packaging/signing/repro docs.
+- Enhanced `mediaforge version`; `release.yml` source archive + SHA256.
+- Release status remains **pre-release**; no forced stable tag.
+- Deprecation, API/ABI, packaging strategy documented.
+
+**Status**: Complete (infrastructure; not a stable product launch).
+
 ## Current Phase
 
-Phase 9 complete. Next: Phase 10 — Compatibility and Release Engineering (per ROADMAP).
+Phase 10 complete. Continuous engineering loop (roadmap ∞) applies.
 
 ## Architecture Decisions
 
@@ -146,4 +155,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 9.*
+*Updated at end of Phase 10.*

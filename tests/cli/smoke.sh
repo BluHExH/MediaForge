@@ -67,6 +67,7 @@ check "ffmpeg_thumbnail_generated" bash -c "
 # --- helper ---
 if [ -x "$HELPER" ] || [ -f "$HELPER" ]; then
   check "helper_help" bash -c "bash $HELPER help | grep -q MediaForge"
+  check "helper_version_mediaforge" bash -c "bash $HELPER version | grep -q MediaForge"
   check "helper_recipes" bash -c "bash $HELPER recipes | grep -q Inspect"
   check "helper_unknown_exit" bash -c "
     set +e

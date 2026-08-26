@@ -37,5 +37,6 @@
 | [branding/](branding/) | Name, visual guide, report |
 | [../CHANGELOG.md](../CHANGELOG.md) | MediaForge-only changes |
 | [RELEASES.md](RELEASES.md) | Versioning |
+| [compatibility/](compatibility/) | Release engineering & compatibility |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
 | [../SECURITY.md](../SECURITY.md) | Security reports |

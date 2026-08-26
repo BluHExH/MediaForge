@@ -25,10 +25,10 @@ This roadmap is living and will be updated as phases complete and new opportunit
 | 7 | Hardware Acceleration | **Complete** | HW docs, hwinfo, skip-not-fail tests; no false GPU claims |
 | 8 | Testing and Fuzzing | **Complete** | Testing docs, regression aggregate, FATE policy; full FATE not claimed |
 | 9 | Documentation and Branding | **Complete** | README, brand assets, SECURITY/CONTRIBUTING, docs index |
-| 10 | Compatibility and Release Engineering | Planned | Release gates, artifacts, notes, matrix |
+| 10 | Compatibility and Release Engineering | **Complete** | VERSION, release.yml, compat docs; still pre-release |
 | ∞ | Continuous Engineering Loop | Ongoing after 10 | AUDIT → PLAN → IMPLEMENT → TEST → BENCHMARK → SECURITY → DOCUMENT → COMMIT → PUSH |
 
-## Near-Term Priorities (after Phase 9)
+## Near-Term Priorities (after Phase 10)
 
 1. Pin `FFMPEG_REF` to a specific upstream commit/tag for reproducibility.
 2. When environment permits, introduce a MediaForge source tree or submodule for real patches.
@@ -51,4 +51,4 @@ This roadmap is living and will be updated as phases complete and new opportunit
 
 ---
 
-*Last updated: Phase 9 completion, 2026-08-26*
+*Last updated: Phase 10 completion, 2026-08-26*

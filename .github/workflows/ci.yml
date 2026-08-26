@@ -417,6 +417,9 @@ jobs:
           test -f SECURITY.md
           test -f CONTRIBUTING.md
           test -f assets/branding/logo.svg
+          test -f VERSION
+          test -f docs/compatibility/VERSIONING.md
+          test -f .github/workflows/release.yml
           echo "Required documentation files present."
 
       - name: MediaForge regression suite

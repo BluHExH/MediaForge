@@ -5,7 +5,7 @@ set -euo pipefail
 
 FFMPEG="${FFMPEG:-ffmpeg}"
 FFPROBE="${FFPROBE:-ffprobe}"
-HELPER_VERSION="1.2 (Phase 7)"
+HELPER_VERSION="1.3 (Phase 10)"
 
 usage() {
   cat <<'EOF'
@@ -168,7 +168,17 @@ case "$cmd" in
   help|-h|--help) usage ;;
   recipes|examples) recipes ;;
   version|--version)
-    echo "mediaforge-helper ${HELPER_VERSION}"
+    ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+    MF_VER="unknown"
+    if [ -f "$ROOT/VERSION" ]; then
+      MF_VER="$(tr -d "[:space:]" < "$ROOT/VERSION")"
+    fi
+    COMMIT="unknown"
+    if command -v git >/dev/null 2>&1 && [ -d "$ROOT/.git" ]; then
+      COMMIT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+    fi
+    echo "MediaForge ${MF_VER} (commit ${COMMIT})"
+    echo "helper ${HELPER_VERSION}"
     command -v "$FFMPEG" >/dev/null && "$FFMPEG" -version | head -1 || echo "ffmpeg: not found"
     command -v "$FFPROBE" >/dev/null && "$FFPROBE" -version | head -1 || echo "ffprobe: not found"
     ;;

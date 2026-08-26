@@ -57,7 +57,7 @@ See [docs/build/BUILDING.md](docs/build/BUILDING.md). CI targets Linux (GCC/Clan
 
 ## Development status
 
-Phases **0–9** complete on `main` (discovery through branding). Next: release engineering (Phase 10). See [docs/ROADMAP.md](docs/ROADMAP.md).
+Phases **0–10** complete on `main`. Project remains **pre-release** (`VERSION` 0.1.0-dev). See [docs/ROADMAP.md](docs/ROADMAP.md) and [docs/compatibility/](docs/compatibility/).
 
 ## Contributing
 
