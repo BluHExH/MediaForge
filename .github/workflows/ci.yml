@@ -412,6 +412,11 @@ jobs:
           test -f docs/testing/TEST_POLICY.md
           test -f docs/testing/FATE.md
           test -f tests/regression/run.sh
+          test -f docs/README.md
+          test -f docs/PROJECT_OVERVIEW.md
+          test -f SECURITY.md
+          test -f CONTRIBUTING.md
+          test -f assets/branding/logo.svg
           echo "Required documentation files present."
 
       - name: MediaForge regression suite

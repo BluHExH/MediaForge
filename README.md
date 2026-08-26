@@ -1,58 +1,71 @@
+<p align="center">
+  <img src="assets/branding/logo.svg" width="96" alt="MediaForge mark"/>
+</p>
+
 # MediaForge
 
-**Working name** for a long-term, production-quality open-source multimedia framework based on the official [FFmpeg](https://ffmpeg.org/) source repository.
+**Multimedia engineering on the FFmpeg foundation.**
 
-MediaForge aims to progressively improve correctness, security, performance, maintainability, and developer experience while preserving FFmpeg’s proven capabilities and compatibility wherever practical.
+MediaForge is a **pre-release** open-source project that builds on the [FFmpeg](https://ffmpeg.org/) multimedia framework. Upstream FFmpeg provides the codecs, containers, filters, and core tools. MediaForge adds **CI, testing discipline, security/performance process, documentation, and optional helpers**—not a claim that MediaForge authored FFmpeg.
 
-> **This is not a casual fork.**  
-> Changes are made methodically, with tests, documentation, and respect for upstream architecture and licensing.
+[Documentation index](docs/README.md) · [Quickstart](docs/quickstart/README.md) · [Project overview](docs/PROJECT_OVERVIEW.md) · [Changelog](CHANGELOG.md)
 
-## Status
+## Why it exists
 
-**Phases 0–8 complete** (through Testing & Fuzzing infrastructure documentation).
+FFmpeg is mature and powerful. MediaForge organizes long-term engineering around it: reproducible builds, honest testing claims, security baseline, performance measurement, and small usability helpers—without incompatible CLI rewrites.
 
-See:
+## What you get today
 
-- [docs/BASELINE.md](docs/BASELINE.md) — upstream structure, build, licensing, known constraints
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — development journal
-- [docs/ROADMAP.md](docs/ROADMAP.md) — long-term roadmap
-- [docs/build/BUILDING.md](docs/build/BUILDING.md) — developer build guide and CI description
-- [docs/architecture/](docs/architecture/) — architecture map and extension points
-- [docs/security/](docs/security/) — security baseline, threat model, audit log
-- [docs/performance/](docs/performance/) — benchmarks, baseline, regression policy
-- [docs/cli/](docs/cli/) — CLI baseline, examples, exit codes
-- [docs/media/](docs/media/) — media feature inventory and helpers
-- [docs/hardware/](docs/hardware/) — HW baseline, requirements, troubleshooting
-- [docs/testing/](docs/testing/) — test policy, FATE notes, fuzzing architecture
-- [CHANGELOG.md](CHANGELOG.md) — MediaForge-specific changes
-- [benchmarks/](benchmarks/) — reproducible smoke benchmark scripts
-- [scripts/mediaforge](scripts/mediaforge) — optional task-oriented helper
+| Area | MediaForge-specific | Upstream FFmpeg |
+|------|---------------------|-----------------|
+| Codecs / formats / filters | — | Yes |
+| `ffmpeg` / `ffprobe` | Passthrough via helper | Primary CLI |
+| Inspect / thumbnail / extract-audio / hwinfo | `scripts/mediaforge` | Implemented via ffprobe/ffmpeg |
+| CI (Linux/Windows/macOS, ASan) | Yes | Built in CI |
+| Architecture, security, performance, testing docs | Yes | See also ffmpeg.org |
 
-CI (GitHub Actions) builds upstream FFmpeg on Linux (GCC/Clang + ASan), Windows (MSYS2), and macOS with smoke tests. No functional MediaForge source patches yet.
+## Relationship to FFmpeg
 
-## Upstream
+```
+Your workflow → ffmpeg / ffprobe (upstream)
+              → scripts/mediaforge (optional MediaForge helper)
+              → docs + tests + CI (MediaForge)
+```
 
-MediaForge is derived from the official FFmpeg project:
+FFmpeg is not affiliated with or endorsed by this project. License obligations of FFmpeg builds still apply (LGPL/GPL and component licenses depending on configure).
 
-- Website: https://ffmpeg.org/
-- Source: https://github.com/FFmpeg/FFmpeg
-- License: primarily LGPL 2.1+ / GPL (see upstream `LICENSE.md` and `COPYING.*` files)
+## Quick examples
 
-All required attribution, license notices, and source-availability obligations will be preserved.
+```bash
+bash scripts/mediaforge inspect input.mp4
+bash scripts/mediaforge thumbnail input.mp4 thumb.jpg --time 00:00:05
+bash scripts/mediaforge extract-audio input.mp4 audio.wav
+bash scripts/mediaforge hwinfo
+ffmpeg -i input.mp4 -c:v libx264 -c:a aac out.mp4
+```
 
-## Name Note
+## Build and platforms
 
-“MediaForge” is used as a working project name. Multiple smaller projects and tools already use similar names. A final branding decision will be made in Phase 9 after further evaluation.
+See [docs/build/BUILDING.md](docs/build/BUILDING.md). CI targets Linux (GCC/Clang/ASan), Windows (MSYS2), and macOS. Hardware acceleration is **optional** and environment-dependent ([docs/hardware/](docs/hardware/)).
 
-## Building
+## Testing and security
 
-See [docs/build/BUILDING.md](docs/build/BUILDING.md) for prerequisites, configure examples, platform notes, sanitizer builds, and CI details.
+- Regression aggregate: `bash tests/regression/run.sh`
+- Testing policy: [docs/testing/](docs/testing/) — full FATE is **not** claimed on every commit
+- Security policy: [SECURITY.md](SECURITY.md)
+- Security baseline: [docs/security/](docs/security/)
 
-CI currently clones and builds upstream FFmpeg. MediaForge-specific patches will appear in later phases.
+## Development status
 
-## License
+Phases **0–9** complete on `main` (discovery through branding). Next: release engineering (Phase 10). See [docs/ROADMAP.md](docs/ROADMAP.md).
 
-See upstream licensing files. MediaForge modifications will be clearly documented and released under compatible terms.
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
+
+## License and attribution
+
+Upstream FFmpeg licensing is defined by the FFmpeg project (`LICENSE.md`, `COPYING.*` in the FFmpeg tree). MediaForge documentation and scripts in this repository are provided for use with that ecosystem; do not assume a single simplified license covers every linked FFmpeg component in every build.
 
 ---
 

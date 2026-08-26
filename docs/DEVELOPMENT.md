@@ -99,9 +99,19 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete.
 
+### Phase 9 — Documentation, Branding & Identity (2026-08-26)
+
+- Documentation index, quickstart, project overview, releases strategy.
+- Brand guide, branding report, original SVG assets (`assets/branding/`).
+- README redesign with accurate FFmpeg attribution.
+- SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates.
+- Website deferred; MediaForge name retained.
+
+**Status**: Complete.
+
 ## Current Phase
 
-Phase 8 complete. Next: Phase 9 — Documentation and Branding (per ROADMAP).
+Phase 9 complete. Next: Phase 10 — Compatibility and Release Engineering (per ROADMAP).
 
 ## Architecture Decisions
 
@@ -136,4 +146,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 8.*
+*Updated at end of Phase 9.*
