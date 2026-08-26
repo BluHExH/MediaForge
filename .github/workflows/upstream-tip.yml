@@ -1,0 +1,44 @@
+# Informational: build upstream FFmpeg master. Does NOT gate releases.
+# Failures here are early warnings only.
+
+name: Upstream tip (informational)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 8 * * 3"
+
+concurrency:
+  group: upstream-tip-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tip-smoke:
+    name: master tip smoke (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends build-essential yasm nasm pkg-config
+      - name: Clone FFmpeg master
+        run: |
+          git clone --depth 1 --branch master https://github.com/FFmpeg/FFmpeg.git ffmpeg
+          echo "TIP_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Configure minimal
+        working-directory: ffmpeg
+        run: |
+          ./configure --disable-everything --disable-network --disable-autodetect \
+            --enable-protocol=file --enable-demuxer=lavfi --enable-muxer=null \
+            --enable-decoder=rawvideo --enable-encoder=rawvideo \
+            --enable-filter=null,testsrc2,color --enable-ffmpeg --disable-doc \
+            || { cat ffbuild/config.log; exit 1; }
+      - name: Build and smoke
+        working-directory: ffmpeg
+        run: |
+          make -j"$(nproc)"
+          ./ffmpeg -f lavfi -i "testsrc2=s=64x64:d=0.2" -f null -
+          echo "Informational tip commit=${TIP_COMMIT}"

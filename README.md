@@ -46,7 +46,7 @@ ffmpeg -i input.mp4 -c:v libx264 -c:a aac out.mp4
 
 ## Build and platforms
 
-See [docs/build/BUILDING.md](docs/build/BUILDING.md). CI targets Linux (GCC/Clang/ASan), Windows (MSYS2), and macOS. Hardware acceleration is **optional** and environment-dependent ([docs/hardware/](docs/hardware/)).
+See [docs/build/BUILDING.md](docs/build/BUILDING.md). CI builds **pinned** FFmpeg `n7.1.5` (`config/upstream.env`). CI targets Linux (GCC/Clang/ASan), Windows (MSYS2), and macOS. Hardware acceleration is **optional** and environment-dependent ([docs/hardware/](docs/hardware/)).
 
 ## Testing and security
 

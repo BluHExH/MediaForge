@@ -31,8 +31,7 @@ env:
   # Pin upstream FFmpeg for reproducible CI. Update deliberately.
   # Using a recent master tip is acceptable for Phase 1 foundation;
   # later phases should pin a release tag or specific commit SHA.
-  FFMPEG_REF: master
-  FFMPEG_REPO: https://github.com/FFmpeg/FFmpeg.git
+  # FFMPEG_REF loaded from config/upstream.env in each job (Cycle 02)
 
 jobs:
   linux-minimal:
@@ -49,9 +48,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential yasm nasm pkg-config
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
           echo "Building FFmpeg commit: $(git -C ffmpeg rev-parse --short HEAD)"
 
@@ -111,9 +122,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential yasm nasm pkg-config
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (standard)
@@ -162,9 +185,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential clang yasm nasm pkg-config
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (Clang)
@@ -207,9 +242,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential yasm nasm pkg-config
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
 
       - name: Configure (ASan + UBSan)
         working-directory: ffmpeg
@@ -293,9 +340,21 @@ jobs:
             mingw-w64-x86_64-pkg-config
             make
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (minimal)
@@ -339,9 +398,21 @@ jobs:
         run: |
           brew install nasm pkg-config || true
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Configure (minimal)
@@ -420,6 +491,8 @@ jobs:
           test -f VERSION
           test -f docs/compatibility/VERSIONING.md
           test -f .github/workflows/release.yml
+          test -f config/upstream.env
+          bash scripts/check-upstream-baseline.sh
           echo "Required documentation files present."
 
       - name: MediaForge regression suite

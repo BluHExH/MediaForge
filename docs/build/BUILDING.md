@@ -169,7 +169,7 @@ Jobs (Phase 1 baseline):
 | macos | macOS | minimal | Apple Clang |
 | docs-check | Ubuntu | n/a | Required documentation presence |
 
-CI clones upstream FFmpeg (`FFMPEG_REF`, currently `master`), configures, builds, and runs smoke tests. Logs include OS, compiler, and commit information for reproducibility.
+CI clones upstream FFmpeg from the pin in `config/upstream.env` (`FFMPEG_REF` + `FFMPEG_COMMIT`), configures, builds, and runs smoke tests. Logs include OS, compiler, and commit information for provenance.
 
 To re-run CI: push to `main`/`master`, open a PR, or use “Run workflow” (workflow_dispatch).
 

@@ -125,9 +125,16 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 - Report: docs/continuous/CYCLE_01_REPORT.md
 - Tests: regression PASS
 
+### Continuous Cycle 02 (2026-08-26)
+
+- Pinned FFmpeg **n7.1.5** (`config/upstream.env` + commit SHA)
+- CI/fate/performance/release load pin; reject `master`
+- Optional informational upstream-tip workflow
+- Report: docs/continuous/CYCLE_02_REPORT.md
+
 ## Current Phase
 
-Continuous engineering (post Phase 10). Next candidates in CYCLE_01_REPORT.md.
+Continuous engineering. Next: batch / validate-only (Cycle 03 candidates).
 
 ## Architecture Decisions
 
@@ -162,4 +169,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated after Continuous Cycle 01.*
+*Updated after Continuous Cycle 02.*

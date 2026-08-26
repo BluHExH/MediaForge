@@ -6,7 +6,7 @@ set -euo pipefail
 
 FFMPEG="${FFMPEG:-ffmpeg}"
 FFPROBE="${FFPROBE:-ffprobe}"
-HELPER_VERSION="1.4 (Cycle 01)"
+HELPER_VERSION="1.5 (Cycle 02)"
 INSPECT_SCHEMA_VERSION="1"
 
 usage() {
@@ -313,6 +313,14 @@ case "$cmd" in
     fi
     echo "MediaForge ${MF_VER} (commit ${COMMIT})"
     echo "helper ${HELPER_VERSION}"
+    if [ -f "$ROOT/config/upstream.env" ]; then
+      # shellcheck disable=SC1091
+      set -a
+      # shellcheck source=/dev/null
+      source "$ROOT/config/upstream.env"
+      set +a
+      echo "ffmpeg_baseline ${FFMPEG_REF:-unknown} (${FFMPEG_COMMIT:-unknown})"
+    fi
     command -v "$FFMPEG" >/dev/null && "$FFMPEG" -version | head -1 || echo "ffmpeg: not found"
     command -v "$FFPROBE" >/dev/null && "$FFPROBE" -version | head -1 || echo "ffprobe: not found"
     ;;

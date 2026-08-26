@@ -6,6 +6,7 @@ MediaForge-specific changes only. Upstream FFmpeg history lives in the FFmpeg pr
 
 ### Added
 
+- **Cycle 02**: Pin FFmpeg baseline to n7.1.5 via config/upstream.env; CI/release provenance
 - **Cycle 01**: `inspect --json` (schema v1), preflight checks, output validation, clearer errors
 - **Phase 10**: Compatibility/release docs, VERSION file, release.yml packaging
 - **Phase 9**: Project identity, docs index, SECURITY/CONTRIBUTING, brand assets

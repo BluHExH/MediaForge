@@ -2,7 +2,7 @@
 
 **Date**: 2026-08-26  
 **Repository**: https://github.com/BluHExH/MediaForge  
-**Upstream reference**: Official FFmpeg (built in CI; `FFMPEG_REF=master` until pinned)
+**Upstream reference**: Official FFmpeg (built in CI; pinned via `config/upstream.env` (see Cycle 02))
 
 ## Scope
 
@@ -93,7 +93,7 @@ No separate MediaForge DoS CVE is claimed in this phase.
 | Full demuxer/decoder audit | Requires vendored tree + time; Phase 8+ continuous work |
 | MSan / TSan CI | Cost; revisit when patches exist |
 | OSS-Fuzz continuous integration into MediaForge | Operational overhead; track upstream first |
-| Pin `FFMPEG_REF` to a release SHA | Recommended soon for reproducibility |
+| Pin `FFMPEG_REF` to a release tag | **Done** (Cycle 02: n7.1.5) |
 
 ## Static analysis strategy
 

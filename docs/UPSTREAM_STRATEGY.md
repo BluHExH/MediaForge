@@ -1,39 +1,30 @@
 # Upstream Strategy
 
-MediaForge is derived from [FFmpeg](https://ffmpeg.org/). Until a full source tree is vendored, CI clones upstream (`FFMPEG_REF` in `.github/workflows/ci.yml`).
+MediaForge is derived from [FFmpeg](https://ffmpeg.org/). CI and release packaging clone upstream using a **pinned release tag**.
+
+## Source of truth
+
+[`config/upstream.env`](../config/upstream.env):
+
+| Variable | Role |
+|----------|------|
+| `FFMPEG_REPOSITORY` | Official git URL |
+| `FFMPEG_REF` | Release tag (e.g. `n7.1.5`) — **not** `master` |
+| `FFMPEG_COMMIT` | Immutable 40-char SHA for that tag |
+
+Validate: `bash scripts/check-upstream-baseline.sh`
+
+## Update process
+
+See [continuous/UPSTREAM_UPDATE.md](continuous/UPSTREAM_UPDATE.md).
 
 ## Principles
 
-1. **Track upstream** security and bugfix commits when pinning versions.  
-2. **Prefer upstream implementations** over divergent MediaForge rewrites.  
-3. **MediaForge-specific code** (docs, CI, helpers, future patches) stays clearly separated.  
-4. **Never silent merge**: configure, build, smoke, sanitizers, MediaForge tests.  
+1. Track **pinned** releases for deterministic CI.  
+2. Prefer upstream implementations over divergent rewrites.  
+3. MediaForge-specific code stays clearly separated.  
+4. Never silent merge: build, smoke, sanitizers, MediaForge tests.
 
-## Pinning
+## Optional master tip
 
-| Phase | Practice |
-|-------|----------|
-| Early (current) | `FFMPEG_REF: master` acceptable for CI foundation |
-| Before release engineering | Pin to tag or immutable SHA; record in BASELINE/CHANGELOG |
-
-## Incorporating security fixes
-
-1. Identify upstream commit / CVE discussion.  
-2. Confirm presence in pinned revision.  
-3. If vendoring patches: minimal diff, regression test, sanitizer run.  
-4. Log in `docs/security/SECURITY_AUDIT.md` when relevant.  
-
-## MediaForge patches (future)
-
-| Practice | Detail |
-|----------|--------|
-| Patch series | One logical change per commit |
-| Prefix | Clear commit messages (`mediaforge:` or area tag) |
-| Rebase | Prefer rebase onto new upstream pins over long-lived diverged branches |
-| Conflicts | Resolve with tests; do not drop upstream security fixes |
-
-## What we do not do
-
-- Copy proprietary codecs  
-- Strip upstream attribution/licenses  
-- Claim upstream work as MediaForge-original features  
+An informational workflow may build upstream `master` with `continue-on-error` — it does **not** gate releases.

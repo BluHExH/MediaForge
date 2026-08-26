@@ -14,8 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FFMPEG_REF: master
-  FFMPEG_REPO: https://github.com/FFmpeg/FFmpeg.git
+  # FFMPEG_REF from config/upstream.env
 
 jobs:
   fate-note-and-smoke:
@@ -31,9 +30,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential yasm nasm pkg-config
 
+
+      - name: Load upstream baseline
+        run: |
+          set -a
+          # shellcheck source=/dev/null
+          source config/upstream.env
+          set +a
+          bash scripts/check-upstream-baseline.sh
+          echo "FFMPEG_REF=${FFMPEG_REF}" >> "$GITHUB_ENV"
+          echo "FFMPEG_REPOSITORY=${FFMPEG_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "FFMPEG_COMMIT=${FFMPEG_COMMIT}" >> "$GITHUB_ENV"
+
       - name: Clone upstream FFmpeg
         run: |
-          git clone --depth 1 --branch "${{ env.FFMPEG_REF }}" "${{ env.FFMPEG_REPO }}" ffmpeg
+          git clone --depth 1 --branch "${FFMPEG_REF}" "${FFMPEG_REPOSITORY}" ffmpeg
           echo "FFMPEG_COMMIT=$(git -C ffmpeg rev-parse HEAD)" >> "$GITHUB_ENV"
 
       - name: Configure minimal
