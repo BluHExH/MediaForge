@@ -1,34 +1,43 @@
 #!/usr/bin/env bash
-# MediaForge optional CLI helper — discoverability only.
+# MediaForge optional CLI helper — discoverability + small workflows.
 # Does NOT replace ffmpeg/ffprobe. Real work is always delegated upstream.
 set -euo pipefail
 
 FFMPEG="${FFMPEG:-ffmpeg}"
 FFPROBE="${FFPROBE:-ffprobe}"
+HELPER_VERSION="1.1 (Phase 6)"
 
 usage() {
   cat <<'EOF'
 MediaForge helper (optional) — compatibility-first wrapper around FFmpeg tools.
 
 Usage:
-  mediaforge help              Show this help
-  mediaforge recipes           Common task recipes (documentation)
-  mediaforge version           Show helper + tool versions
-  mediaforge probe [args...]   Exec ffprobe with given args
-  mediaforge ffmpeg [args...]  Exec ffmpeg with given args
-  mediaforge run [args...]     Same as: mediaforge ffmpeg [args...]
+  mediaforge help
+  mediaforge recipes
+  mediaforge version
+
+  mediaforge inspect <input>              Human-readable summary (ffprobe)
+  mediaforge thumbnail <input> <output> [--time TS]
+                                          Extract one frame (default TS=00:00:01)
+  mediaforge extract-audio <input> <output>
+                                          Audio only (-vn); copy or light encode by ext
+
+  mediaforge probe [ffprobe-args...]
+  mediaforge ffmpeg [ffmpeg-args...]
+  mediaforge run [ffmpeg-args...]
 
 Environment:
   FFMPEG   path to ffmpeg  (default: ffmpeg)
   FFPROBE  path to ffprobe (default: ffprobe)
 
-Standard FFmpeg CLIs remain the primary interface. See docs/cli/EXAMPLES.md.
+Standard FFmpeg CLIs remain the primary interface.
+See docs/cli/EXAMPLES.md and docs/media/.
 EOF
 }
 
 recipes() {
   cat <<'EOF'
-Common recipes (run with ffmpeg/ffprobe directly, or: mediaforge ffmpeg ...):
+Common recipes (also: mediaforge inspect|thumbnail|extract-audio):
 
   Inspect (JSON):
     ffprobe -v quiet -print_format json -show_format -show_streams INPUT
@@ -40,19 +49,89 @@ Common recipes (run with ffmpeg/ffprobe directly, or: mediaforge ffmpeg ...):
     ffmpeg -nostdin -y -i INPUT -c:v libx264 -crf 23 -c:a aac OUTPUT
 
   Extract audio:
-    ffmpeg -nostdin -y -i INPUT -vn -c:a copy OUT.m4a
+    mediaforge extract-audio INPUT OUT.m4a
+
+  Thumbnail:
+    mediaforge thumbnail INPUT thumb.jpg --time 00:00:05
 
   Resize width 1280 (keep AR):
     ffmpeg -nostdin -y -i INPUT -vf scale=1280:-2 -c:v libx264 -c:a copy OUTPUT
 
-  Thumbnail at 5s:
-    ffmpeg -nostdin -y -i INPUT -ss 00:00:05 -frames:v 1 thumb.jpg
-
-  Trim 30s from 00:00:10 (stream copy):
-    ffmpeg -nostdin -y -ss 00:00:10 -i INPUT -t 30 -c copy CLIP
-
 Full list: docs/cli/EXAMPLES.md
 EOF
+}
+
+die() { echo "mediaforge: $*" >&2; exit 1; }
+
+need_tools() {
+  command -v "$FFMPEG" >/dev/null 2>&1 || die "ffmpeg not found (set FFMPEG=)"
+  command -v "$FFPROBE" >/dev/null 2>&1 || die "ffprobe not found (set FFPROBE=)"
+}
+
+cmd_inspect() {
+  need_tools
+  [ "$#" -ge 1 ] || die "usage: mediaforge inspect <input>"
+  local input="$1"
+  echo "=== MediaForge inspect ==="
+  echo "input: $input"
+  # Compact, script-friendly key=value style from ffprobe
+  "$FFPROBE" -v error \
+    -show_entries format=format_name,duration,size,bit_rate \
+    -show_entries stream=index,codec_type,codec_name,width,height,pix_fmt,sample_rate,channels,channel_layout,r_frame_rate \
+    -of default=noprint_wrappers=1:nokey=0 \
+    "$input"
+}
+
+cmd_thumbnail() {
+  need_tools
+  [ "$#" -ge 2 ] || die "usage: mediaforge thumbnail <input> <output> [--time TS]"
+  local input="$1" output="$2" ts="00:00:01"
+  shift 2
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --time)
+        [ "$#" -ge 2 ] || die "--time requires a value"
+        ts="$2"
+        shift 2
+        ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  # -ss before -i for faster seek when possible; fine for helper defaults
+  "$FFMPEG" -nostdin -y -hide_banner -loglevel error \
+    -ss "$ts" -i "$input" -frames:v 1 "$output"
+}
+
+cmd_extract_audio() {
+  need_tools
+  [ "$#" -ge 2 ] || die "usage: mediaforge extract-audio <input> <output>"
+  local input="$1" output="$2"
+  local ext="${output##*.}"
+  ext="$(printf '%s' "$ext" | tr 'A-Z' 'a-z')"
+  local -a audio_opts
+  case "$ext" in
+    wav)
+      audio_opts=(-c:a pcm_s16le)
+      ;;
+    mp3)
+      audio_opts=(-c:a libmp3lame -q:a 2)
+      ;;
+    m4a|aac)
+      audio_opts=(-c:a aac -b:a 192k)
+      ;;
+    opus)
+      audio_opts=(-c:a libopus -b:a 128k)
+      ;;
+    flac)
+      audio_opts=(-c:a flac)
+      ;;
+    *)
+      # Try stream copy; user can re-run with a specific extension if it fails
+      audio_opts=(-c:a copy)
+      ;;
+  esac
+  "$FFMPEG" -nostdin -y -hide_banner -loglevel error \
+    -i "$input" -vn "${audio_opts[@]}" "$output"
 }
 
 cmd="${1:-help}"
@@ -62,16 +141,15 @@ case "$cmd" in
   help|-h|--help) usage ;;
   recipes|examples) recipes ;;
   version|--version)
-    echo "mediaforge-helper 1.0 (Phase 5)"
+    echo "mediaforge-helper ${HELPER_VERSION}"
     command -v "$FFMPEG" >/dev/null && "$FFMPEG" -version | head -1 || echo "ffmpeg: not found"
     command -v "$FFPROBE" >/dev/null && "$FFPROBE" -version | head -1 || echo "ffprobe: not found"
     ;;
-  probe|ffprobe)
-    exec "$FFPROBE" "$@"
-    ;;
-  ffmpeg|run)
-    exec "$FFMPEG" "$@"
-    ;;
+  inspect) cmd_inspect "$@" ;;
+  thumbnail) cmd_thumbnail "$@" ;;
+  extract-audio|extract_audio) cmd_extract_audio "$@" ;;
+  probe|ffprobe) exec "$FFPROBE" "$@" ;;
+  ffmpeg|run) exec "$FFMPEG" "$@" ;;
   *)
     echo "Unknown command: $cmd" >&2
     echo "Try: mediaforge help" >&2

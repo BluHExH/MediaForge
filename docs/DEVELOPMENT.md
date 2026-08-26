@@ -70,9 +70,19 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 
 **Status**: Complete.
 
+### Phase 6 — Media Processing Improvements (2026-08-26)
+
+- Feature inventory + media roadmap + feature designs (`docs/media/`).
+- Helpers: `mediaforge inspect`, `thumbnail`, `extract-audio` (delegate to ffprobe/ffmpeg).
+- `tests/media/smoke.sh`; upstream strategy doc; CHANGELOG.md.
+- **No libav* source rewrites**; no new codecs/filters in C.
+- Rejected: custom subtitle engine, streaming stack, speculative codec work.
+
+**Status**: Complete.
+
 ## Current Phase
 
-Phase 5 complete. Next: Phase 6 — Media Processing Improvements (per ROADMAP).
+Phase 6 complete. Next: Phase 7 — Hardware Acceleration (per ROADMAP).
 
 ## Architecture Decisions
 
@@ -107,4 +117,4 @@ Unchanged: target binary/API/CLI compatibility with upstream where practical.
 
 ---
 
-*Updated at end of Phase 5.*
+*Updated at end of Phase 6.*

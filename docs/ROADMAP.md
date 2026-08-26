@@ -21,14 +21,14 @@ This roadmap is living and will be updated as phases complete and new opportunit
 | 3 | Security Audit | **Complete** | Baseline docs, attack surface, threat model, fuzz notes, ASan malformed smokes |
 | 4 | Performance Engineering | **Complete** | Baseline + benchmarks infra; no speculative source opts (ADR-0004) |
 | 5 | Modern CLI / Developer Experience | **Complete** | CLI docs, examples, helper, smoke tests; no incompatible rewrite |
-| 6 | Media Processing Improvements | Planned | Filters, metadata, subtitles, pipelines — only with real use-cases + tests |
+| 6 | Media Processing Improvements | **Complete** | Inventory, inspect/thumbnail/extract-audio helpers, media tests |
 | 7 | Hardware Acceleration | Planned | Improve graceful fallback, coverage, documentation of CUDA/VA-API/Vulkan/VideoToolbox/etc. |
 | 8 | Testing and Fuzzing | Planned | Strengthen FATE, unit/integration, malformed input, continuous fuzzing |
 | 9 | Documentation and Branding | Planned | Final name decision, README, logo concept, consistent terminology, attribution |
 | 10 | Compatibility and Release Engineering | Planned | Release gates, artifacts, notes, matrix |
 | ∞ | Continuous Engineering Loop | Ongoing after 10 | AUDIT → PLAN → IMPLEMENT → TEST → BENCHMARK → SECURITY → DOCUMENT → COMMIT → PUSH |
 
-## Near-Term Priorities (after Phase 5)
+## Near-Term Priorities (after Phase 6)
 
 1. Pin `FFMPEG_REF` to a specific upstream commit/tag for reproducibility.
 2. When environment permits, introduce a MediaForge source tree or submodule for real patches.
@@ -51,4 +51,4 @@ This roadmap is living and will be updated as phases complete and new opportunit
 
 ---
 
-*Last updated: Phase 5 completion, 2026-08-26*
+*Last updated: Phase 6 completion, 2026-08-26*

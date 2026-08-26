@@ -9,7 +9,7 @@ MediaForge aims to progressively improve correctness, security, performance, mai
 
 ## Status
 
-**Phases 0–5 complete** (Discovery, Build/CI, Architecture, Security, Performance infra, CLI DX).
+**Phases 0–6 complete** (through Media Processing helpers & inventory).
 
 See:
 
@@ -21,6 +21,8 @@ See:
 - [docs/security/](docs/security/) — security baseline, threat model, audit log
 - [docs/performance/](docs/performance/) — benchmarks, baseline, regression policy
 - [docs/cli/](docs/cli/) — CLI baseline, examples, exit codes
+- [docs/media/](docs/media/) — media feature inventory and helpers
+- [CHANGELOG.md](CHANGELOG.md) — MediaForge-specific changes
 - [benchmarks/](benchmarks/) — reproducible smoke benchmark scripts
 - [scripts/mediaforge](scripts/mediaforge) — optional task-oriented helper
 
