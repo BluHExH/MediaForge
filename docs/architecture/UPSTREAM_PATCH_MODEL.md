@@ -2,27 +2,40 @@
 
 ## Baseline
 
-Exact FFmpeg release imported under `vendor/ffmpeg/` matching `config/upstream.env`.
+Pinned official archive + `config/upstream.env`:
 
-## Distinguishing changes
+| Field | Example |
+|-------|---------|
+| Archive | `vendor/ffmpeg-n7.1.5.tar.gz` |
+| Tag | `n7.1.5` |
+| Commit | `3a0867c2bfda4a4d4309ca1a8cbdc6175e67f587` |
 
-| Kind | How identified |
-|------|----------------|
-| Upstream files | Match release tag content |
-| MediaForge changes | Git commits with `mediaforge:` subject prefix, or files under MediaForge-owned paths outside `vendor/ffmpeg/` |
-| Re-vendor events | Commit message `vendor: ffmpeg <tag> (<sha>)` |
+## Layout (Option B)
+
+```
+vendor/ffmpeg-n7.1.5.tar.gz   # committed, immutable pin
+vendor/patches/                 # MediaForge patches (committed when Stage 5 starts)
+vendor/ffmpeg/                  # NOT committed — extract + apply patches
+```
+
+## Apply order
+
+```bash
+bash scripts/vendor-ffmpeg.sh          # extract + verify
+# future:
+# for p in vendor/patches/*.patch; do patch -p1 -d vendor/ffmpeg < "$p"; done
+cd vendor/ffmpeg
+bash ../../scripts/configure-mediaforge-ffmpeg.sh
+make -j2
+```
 
 ## Rules
 
-1. Prefer **additive** MediaForge code outside `vendor/ffmpeg/` when possible.  
-2. In-tree edits must be **minimal**, justified, and tested.  
-3. On upstream update: replace tree from new tag, re-apply MediaForge commits/patches, run full regression.  
-4. Do not rewrite unrelated upstream style or “cleanup” churn.  
-5. Security fixes: prefer official release tags; cherry-pick only with clear notes.
+1. Prefer MediaForge code **outside** the FFmpeg tree when possible.
+2. In-tree patches must be minimal, tested, and named `NNNN-short-description.patch`.
+3. On upstream bump: replace archive, update `upstream.env`, rebase/retest patches.
+4. Never claim a patch is an “optimization” without measurements.
 
-## Synchronization flow
+## Stage 5
 
-```
-New FFmpeg tag → update upstream.env → vendor-ffmpeg.sh →
-build → tests → sanitizers → FATE subset → review → push
-```
+No MediaForge FFmpeg patches exist yet. This document only defines the mechanism.

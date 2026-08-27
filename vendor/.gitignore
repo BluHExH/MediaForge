@@ -1,6 +1,9 @@
-# Build outputs under vendored FFmpeg
-ffmpeg/**/*.o
-ffmpeg/**/*.a
-ffmpeg/ffmpeg
-ffmpeg/ffprobe
-ffmpeg/ffbuild/
+# Extracted workspace (Option B) — regenerate with scripts/vendor-ffmpeg.sh
+/ffmpeg/
+# Never commit build products
+**/*.o
+**/*.a
+**/ffmpeg
+**/ffprobe
+**/ffplay
+**/ffbuild/

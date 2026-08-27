@@ -5,6 +5,7 @@ MediaForge-specific changes only. Upstream FFmpeg history lives in the FFmpeg pr
 ## [Unreleased]
 
 ### Added
+- **Stage 4D**: FFmpeg source layout Option B (archive + extract); MediaForge configure script; full CLI/media regression on pinned 7.1.5 build
 - **Stage 4**: `verify-vendored-ffmpeg.sh` completeness gate; full import blocked by agent network (see STAGE_04_REPORT.md)
 
 - **Source transition (Stage 1–3 infra)**: SOURCE_INTEGRATION_PLAN, vendor-ffmpeg.sh, CI prefers vendor/ffmpeg

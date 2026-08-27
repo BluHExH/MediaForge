@@ -138,7 +138,15 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 - Patch model + vendor-ffmpeg.sh; CI uses vendor/ffmpeg when present
 - Full tree import blocked by environment timeouts — see SOURCE_TRANSITION_REPORT.md
 
+### Stage 4D (2026-08-27)
+
+- Layout: archive + deterministic extract (Option B) — see docs/architecture/FFMPEG_SOURCE_LAYOUT.md
+- configure-mediaforge-ffmpeg.sh enables lavfi indev + wrapped_avframe
+- Regression: CLI 14, Media 7, Hardware 3+1 SKIP
+- No FFmpeg C modifications
+
 ## Current Phase
+
 
 Source-based migration Stage 1–3 infrastructure. Complete vendor/ffmpeg import next.
 
