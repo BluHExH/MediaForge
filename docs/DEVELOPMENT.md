@@ -145,7 +145,15 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 - Regression: CLI 14, Media 7, Hardware 3+1 SKIP
 - No FFmpeg C modifications
 
+### Stage 5 audit (2026-08-27)
+
+- Workload baselines on pinned FFmpeg 7.1.5 (scale ~5× null on 720p synthetic)
+- First candidate: MF-S5-01 smart pipeline (helpers) — design only
+- No FFmpeg C patches; no fabricated speedups
+- docs/engineering/*
+
 ## Current Phase
+
 
 
 Source-based migration Stage 1–3 infrastructure. Complete vendor/ffmpeg import next.
