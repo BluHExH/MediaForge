@@ -152,7 +152,14 @@ MediaForge is a long-term, production-quality open-source multimedia framework d
 - No FFmpeg C patches; no fabricated speedups
 - docs/engineering/*
 
+### Stage 5B (2026-08-27)
+
+- mediaforge process --smart / --plan / --json
+- tests/cli/process_smart.sh (8 PASS)
+- No FFmpeg C changes; vendor/patches empty
+
 ## Current Phase
+
 
 
 

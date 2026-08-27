@@ -6,8 +6,9 @@ set -euo pipefail
 
 FFMPEG="${FFMPEG:-ffmpeg}"
 FFPROBE="${FFPROBE:-ffprobe}"
-HELPER_VERSION="1.5 (Cycle 02)"
+HELPER_VERSION="1.6 (Stage 5B MF-S5-01)"
 INSPECT_SCHEMA_VERSION="1"
+PLAN_SCHEMA_VERSION="1"
 
 usage() {
   cat <<'EOF'
@@ -26,6 +27,10 @@ Usage:
                                           Audio only (-vn); codec by output extension
   mediaforge hwinfo                       List hwaccels / hw encoders / runtime probe
 
+  mediaforge process <input> -o <output> [options]
+                                          Plan/execute conversion (--smart opt-in)
+                                          --smart --plan [--json] --width --height
+                                          --video-codec --audio-codec
   mediaforge probe [ffprobe-args...]
   mediaforge ffmpeg [ffmpeg-args...]
   mediaforge run [ffmpeg-args...]
@@ -295,6 +300,258 @@ cmd_hwinfo() {
   echo "note: listed encoders require matching drivers/devices at runtime"
 }
 
+cmd_process() {
+  need_tools
+  local input="" output="" smart=0 plan_only=0 json=0
+  local tw="" th="" tvc="" tac=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -o|--output)
+        [ "$#" -ge 2 ] || die "--output requires a path"
+        output="$2"; shift 2 ;;
+      --smart) smart=1; shift ;;
+      --plan) plan_only=1; shift ;;
+      --json) json=1; shift ;;
+      --width)
+        [ "$#" -ge 2 ] || die "--width requires a positive integer"
+        tw="$2"; shift 2 ;;
+      --height)
+        [ "$#" -ge 2 ] || die "--height requires a positive integer"
+        th="$2"; shift 2 ;;
+      --video-codec)
+        [ "$#" -ge 2 ] || die "--video-codec requires a name (e.g. h264, mpeg4, copy)"
+        tvc="$2"; shift 2 ;;
+      --audio-codec)
+        [ "$#" -ge 2 ] || die "--audio-codec requires a name (e.g. aac, pcm_s16le, copy)"
+        tac="$2"; shift 2 ;;
+      -h|--help)
+        echo "usage: mediaforge process <input> -o <output> [--smart] [--plan] [--json]"
+        echo "         [--width N] [--height N] [--video-codec NAME] [--audio-codec NAME]"
+        return 0 ;;
+      -*)
+        die "unknown process option: $1" ;;
+      *)
+        if [ -n "$input" ]; then
+          die "unexpected argument: $1"
+        fi
+        input="$1"; shift ;;
+    esac
+  done
+  [ -n "$input" ] || die "usage: mediaforge process <input> -o <output> ..."
+  [ -n "$output" ] || die "output is required (-o/--output)"
+  require_input_path "$input"
+  if [ "$plan_only" -eq 0 ]; then
+    require_output_parent "$output"
+  fi
+  if [ -n "$tw" ]; then
+    case "$tw" in
+      *[!0-9]*|"") die "target width must be a positive integer" ;;
+    esac
+    [ "$tw" -gt 0 ] || die "target width must be greater than zero"
+  fi
+  if [ -n "$th" ]; then
+    case "$th" in
+      *[!0-9]*|"") die "target height must be a positive integer" ;;
+    esac
+    [ "$th" -gt 0 ] || die "target height must be greater than zero"
+  fi
+
+  local raw
+  if ! raw="$("$FFPROBE" -v quiet -print_format json -show_format -show_streams "$input" 2>/dev/null)"; then
+    die "ffprobe failed for input: $input (is it a supported media file?)"
+  fi
+
+  local plan_json
+  plan_json="$(
+    INPUT_PATH="$input" OUTPUT_PATH="$output" SMART="$smart" \
+    TW="$tw" TH="$th" TVC="$tvc" TAC="$tac" \
+    RAW="$raw" SCHEMA="$PLAN_SCHEMA_VERSION" \
+    python3 - <<'PY'
+import json, os
+raw = os.environ["RAW"]
+data = json.loads(raw)
+fmt = data.get("format") or {}
+streams = data.get("streams") or []
+v = next((s for s in streams if s.get("codec_type") == "video"), None)
+a = next((s for s in streams if s.get("codec_type") == "audio"), None)
+tw = os.environ.get("TW") or ""
+th = os.environ.get("TH") or ""
+tvc = (os.environ.get("TVC") or "").strip().lower()
+tac = (os.environ.get("TAC") or "").strip().lower()
+smart = os.environ.get("SMART") == "1"
+out_path = os.environ["OUTPUT_PATH"]
+ext = out_path.rsplit(".", 1)[-1].lower() if "." in out_path else ""
+
+iw = v.get("width") if v else None
+ih = v.get("height") if v else None
+ivc = (v.get("codec_name") or "").lower() if v else ""
+iac = (a.get("codec_name") or "").lower() if a else ""
+
+needs_scale = False
+if tw or th:
+    if v is None:
+        needs_scale = True
+    else:
+        if tw and int(tw) != int(iw or -1):
+            needs_scale = True
+        if th and int(th) != int(ih or -1):
+            needs_scale = True
+
+needs_vcodec = False
+if tvc and tvc != "copy":
+    if not ivc or tvc != ivc:
+        needs_vcodec = True
+
+needs_acodec = False
+if tac and tac != "copy":
+    if not iac or tac != iac:
+        needs_acodec = True
+
+if smart and not needs_scale and not needs_vcodec and not needs_acodec:
+    decision = "STREAM_COPY"
+    reason = "requested properties already satisfied; stream-copy/remux"
+    action = {"type": "stream_copy", "scale": False}
+elif not smart:
+    decision = "PROCESS"
+    reason = "smart mode disabled; always run conversion path for requested targets"
+    action = {
+        "type": "process",
+        "scale": bool(tw or th),
+        "video_codec": tvc or None,
+        "audio_codec": tac or None,
+    }
+else:
+    decision = "PROCESS"
+    parts = []
+    if needs_scale:
+        parts.append("scale required")
+    if needs_vcodec:
+        parts.append("video codec conversion required")
+    if needs_acodec:
+        parts.append("audio codec conversion required")
+    reason = "; ".join(parts) if parts else "processing required"
+    action = {
+        "type": "process",
+        "scale": needs_scale,
+        "target_width": int(tw) if tw else None,
+        "target_height": int(th) if th else None,
+        "video_codec": tvc or None,
+        "audio_codec": tac or None,
+    }
+
+plan = {
+    "tool": "mediaforge",
+    "operation": "process",
+    "schema_version": int(os.environ["SCHEMA"]),
+    "smart": smart,
+    "decision": decision,
+    "reason": reason,
+    "input": {
+        "path": os.environ["INPUT_PATH"],
+        "format_name": fmt.get("format_name"),
+        "width": iw,
+        "height": ih,
+        "video_codec": ivc or None,
+        "audio_codec": iac or None,
+    },
+    "target": {
+        "path": out_path,
+        "width": int(tw) if tw else None,
+        "height": int(th) if th else None,
+        "video_codec": tvc or None,
+        "audio_codec": tac or None,
+        "container_hint": ext or None,
+    },
+    "action": action,
+}
+print(json.dumps(plan))
+PY
+  )" || die "failed to build process plan"
+
+  if [ "$json" -eq 1 ]; then
+    printf '%s\n' "$plan_json" | python3 -m json.tool
+  else
+    echo "=== MediaForge Smart Plan ==="
+    echo "input: $input"
+    echo "output: $output"
+    echo "smart: $smart"
+    printf '%s' "$plan_json" | python3 -c '
+import json,sys
+p=json.load(sys.stdin)
+print("decision:", p["decision"])
+print("reason:", p["reason"])
+inp, tgt = p["input"], p["target"]
+print("video: {}x{} {}".format(inp.get("width"), inp.get("height"), inp.get("video_codec")))
+print("audio:", inp.get("audio_codec"))
+print("target: w={} h={} vcodec={} acodec={}".format(
+    tgt.get("width"), tgt.get("height"), tgt.get("video_codec"), tgt.get("audio_codec")))
+print("action:", p["action"].get("type"))
+'
+  fi
+
+  if [ "$plan_only" -eq 1 ]; then
+    return 0
+  fi
+
+  local decision
+  decision="$(printf '%s' "$plan_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["decision"])')"
+
+  local -a args
+  args=(-nostdin -y -hide_banner -loglevel error -i "$input")
+
+  if [ "$decision" = "STREAM_COPY" ]; then
+    args+=(-c copy)
+    echo "mediaforge: action: stream_copy (-c copy)"
+  else
+    local do_scale=0
+    if [ "$smart" -eq 1 ]; then
+      do_scale="$(printf '%s' "$plan_json" | python3 -c 'import json,sys; print(1 if json.load(sys.stdin)["action"].get("scale") else 0)')"
+    else
+      if [ -n "$tw" ] || [ -n "$th" ]; then
+        do_scale=1
+      fi
+    fi
+    if [ "$do_scale" = "1" ]; then
+      local sw sh
+      sw="$tw"
+      sh="$th"
+      if [ -z "$sw" ]; then
+        sw="$(printf '%s' "$plan_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["input"].get("width") or "")')"
+      fi
+      if [ -z "$sh" ]; then
+        sh="$(printf '%s' "$plan_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["input"].get("height") or "")')"
+      fi
+      if [ -n "$sw" ] && [ -n "$sh" ]; then
+        args+=(-vf "scale=${sw}:${sh}")
+        echo "mediaforge: action: scale ${sw}x${sh}"
+      fi
+    fi
+    if [ -n "$tvc" ] && [ "$tvc" != "copy" ]; then
+      args+=(-c:v "$tvc")
+      echo "mediaforge: action: video_codec $tvc"
+    elif [ "$tvc" = "copy" ]; then
+      args+=(-c:v copy)
+    fi
+    if [ -n "$tac" ] && [ "$tac" != "copy" ]; then
+      args+=(-c:a "$tac")
+      echo "mediaforge: action: audio_codec $tac"
+    elif [ "$tac" = "copy" ]; then
+      args+=(-c:a copy)
+    fi
+    if [ "$do_scale" != "1" ] && [ -z "$tvc" ] && [ -z "$tac" ]; then
+      args+=(-c copy)
+      echo "mediaforge: action: stream_copy (no conversion targets)"
+    fi
+  fi
+
+  args+=("$output")
+  if ! "$FFMPEG" "${args[@]}"; then
+    die "process failed (check codecs/filters available in this FFmpeg build)"
+  fi
+  validate_output_file "$output"
+  echo "mediaforge: wrote $output"
+}
+
 cmd="${1:-help}"
 shift || true
 
@@ -325,6 +582,7 @@ case "$cmd" in
     command -v "$FFPROBE" >/dev/null && "$FFPROBE" -version | head -1 || echo "ffprobe: not found"
     ;;
   inspect) cmd_inspect "$@" ;;
+  process) cmd_process "$@" ;;
   thumbnail) cmd_thumbnail "$@" ;;
   extract-audio|extract_audio) cmd_extract_audio "$@" ;;
   hwinfo|hw) cmd_hwinfo "$@" ;;

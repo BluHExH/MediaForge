@@ -6,6 +6,7 @@ cd "$ROOT"
 
 echo "=== MediaForge regression aggregate ==="
 bash tests/cli/smoke.sh
+bash tests/cli/process_smart.sh
 bash tests/media/smoke.sh
 bash tests/hardware/smoke.sh
 echo "=== regression aggregate OK ==="

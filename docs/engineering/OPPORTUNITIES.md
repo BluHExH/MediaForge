@@ -2,11 +2,10 @@
 
 ## P1
 
-### MF-S5-01 — Avoid unnecessary scale/transcode (helpers)
+### MF-S5-01 — Avoid unnecessary scale/transcode (helpers) — DONE (5B)
 
-- **Evidence**: scale ~5× null cost on 720p generated video
-- **Change location**: `scripts/mediaforge`, not libav*
-- **Design**: `docs/engineering/MF-S5-01_SMART_PIPELINE.md`
+- Implemented: `mediaforge process --smart`
+- Evidence + results: `docs/engineering/MF-S5-01-SMART-PIPELINE.md`
 
 ### MF-S5-02 — Probe/result caching for batch inspect
 

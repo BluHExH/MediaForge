@@ -5,6 +5,7 @@ MediaForge-specific changes only. Upstream FFmpeg history lives in the FFmpeg pr
 ## [Unreleased]
 
 ### Added
+- **MF-S5-01**: `mediaforge process --smart` pipeline planning (stream-copy when targets match)
 - **Stage 5 audit**: engineering docs, benchmarks, opportunity ranking; no FFmpeg C patches
 - **Stage 4D**: FFmpeg source layout Option B (archive + extract); MediaForge configure script; full CLI/media regression on pinned 7.1.5 build
 - **Stage 4**: `verify-vendored-ffmpeg.sh` completeness gate; full import blocked by agent network (see STAGE_04_REPORT.md)
